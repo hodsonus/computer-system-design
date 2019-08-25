@@ -1,0 +1,44 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "HW1.py: ex1",
+            "type": "python",
+            "request": "launch",
+            "program": "/Users/johnhodson/GitHub/computer-system-design/hw1/HW1.py",
+            "console": "integratedTerminal",
+            "args": [
+                "Hello world",
+                "! This is a test",
+                "11"
+            ]
+        },
+        {
+            "name": "HW1.py: ex2",
+            "type": "python",
+            "request": "launch",
+            "program": "/Users/johnhodson/GitHub/computer-system-design/hw1/HW1.py",
+            "console": "integratedTerminal",
+            "args": [
+                "Today has been a bland day",
+                "great",
+                "17"
+            ]
+        },
+        {
+            "name": "HW1.py: ex3",
+            "type": "python",
+            "request": "launch",
+            "program": "/Users/johnhodson/GitHub/computer-system-design/hw1/HW1.py",
+            "console": "integratedTerminal",
+            "args": [
+                "Hello world",
+                "! This is a test",
+                "12"
+            ]
+        },
+    ]
+}
