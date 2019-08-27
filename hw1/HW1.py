@@ -1,4 +1,4 @@
-import BlockLayer, sys, config, MemoryInterface
+import BlockLayer, sys, math, config, MemoryInterface
 
 MemoryInterface.Initialize_My_FileSystem()
 interface = BlockLayer.BlockLayer()
@@ -6,6 +6,8 @@ interface = BlockLayer.BlockLayer()
 class Operations():
 	def __init__(self):
 		self.map = []
+		self.base_block = interface.get_valid_data_block()
+		interface.free_data_block(self.base_block)
 
 	#WRITES STRING1
 	def write(self, string):
@@ -38,38 +40,37 @@ class Operations():
 
 	# WRITE TO OFFSET (refer to assignment doc)
 	def write_to_offset(self,offset,string):
-		# range from blocks offset/4 -> offset/4+len(string)/4
-		first_map_index = offset/config.BLOCK_SIZE
-		last_map_index = first_map_index + len(string)/config.BLOCK_SIZE
-		if (first_map_index >= len(self.map)):
+		base_addr = self.base_block*config.BLOCK_SIZE-1
+
+		first_block = self.base_block + offset/config.BLOCK_SIZE
+		last_block = first_block + len(string)/config.BLOCK_SIZE
+
+		if (first_block not in self.map):
 			raise Exception("Attempted to offset write to an unallocated block.")
 
-		char_numbers_to_overwrite = range(offset,offset+len(string))
-		curr_char_num = first_map_index*config.BLOCK_SIZE
-		curr_string_pointer = 0
+		addrs_to_overwrite = range(base_addr+offset,base_addr+offset+len(string))
+		curr_addr = first_block*config.BLOCK_SIZE-1
+		string_pointer = 0
 
-		for map_index in range(first_map_index, last_map_index+1):
+		for current_block in range(first_block, last_block+1):
 			# add memory blocks to pad offset if we have not allocated enough blocks yet
-			while (map_index >= len(self.map)):
+			while (current_block not in self.map):
 				self.map.append(interface.get_valid_data_block())
 
-			# get the valid block number to update from the map_index
-			valid_block_number = self.map[map_index]
-
 			# read data block at valid_block_number
-			old_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(valid_block_number)
+			old_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(current_block)
 			new_data = ""
 
-			# choose data from either the old data or the new string, dependent on the curr_char_num
+			# choose data from either the old data or the new string, dependent on the curr_addr
 			for old_data_char in old_data:
-				if (curr_char_num in char_numbers_to_overwrite):
-					new_data+=string[curr_string_pointer]
-					curr_string_pointer+=1
+				if (curr_addr in addrs_to_overwrite):
+					new_data+=string[string_pointer]
+					string_pointer+=1
 				else:
 					new_data += old_data_char
-				curr_char_num+=1
+				curr_addr+=1
 
-			interface.update_data_block(valid_block_number, new_data)
+			interface.update_data_block(current_block, new_data)
 
 if __name__ == "__main__":
 	if len(sys.argv) < 4: 
