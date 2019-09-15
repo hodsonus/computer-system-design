@@ -6,7 +6,8 @@ import datetime, config
 
 #TABLE INODE STRUCTURE FOR LOCAL USE OF OPERATIONS
 class Table_Inode():
-	def __init__(self, _type):
+	def __init__(self, _type): 
+		# 0 -> file, 1 -> directory
 		self.type = _type
 		# blk_numbers is the same as (self.map in HW1) mapping table between actual block numbers in memory vs relative block numbers 
 		self.blk_numbers = [-1 for _ in range(((config.INODE_SIZE - 63 - config.MAX_FILE_NAME_SIZE) / 2))]
