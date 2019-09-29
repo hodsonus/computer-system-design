@@ -75,7 +75,7 @@ class InodeLayer():
 
         # return an error if writing from an offset larger than the file size
         if (first_blk_index >= len(inode.blk_numbers)):
-            raise Exception("Attempted to offset write to an offset larger than the file size.")
+            return -1
 
         byte_nums_to_overwrite = range(offset, offset+len(data))
         curr_byte_num = first_blk_index*config.BLOCK_SIZE
@@ -124,7 +124,7 @@ class InodeLayer():
 
         # return an error if writing from an offset larger than the file size
         if (first_blk_index >= len(inode.blk_numbers)):
-            raise Exception("Attempted to read from an offset larger than the file size.")
+            return -1;
 
         byte_nums_to_read = range(offset, offset+length)
         curr_byte_num = first_blk_index*config.BLOCK_SIZE

@@ -4,7 +4,6 @@ UPDATES. THE INODE TABLE AND INODE NUMBER IS UPDATED IN THE FILE SYSTEM USING TH
 '''
 import InodeLayer, config, MemoryInterface, datetime, InodeOps, MemoryInterface
 
-
 #HANDLE OF INODE LAYER
 interface = InodeLayer.InodeLayer()
 
@@ -59,21 +58,81 @@ class InodeNumberLayer():
 		print("Error InodeNumberLayer: All inode Numbers are occupied!\n")
 
 
-	#LINKS THE INODE
+	# LINKS THE INODE
+	# creates a hard link with name "new_path" to the object resolved by "old_path"
 	def link(self, file_inode_number, hardlink_name, hardlink_parent_inode_number):
-		'''WRITE YOUR CODE HERE'''
+		file_inode = self.INODE_NUMBER_TO_INODE(file_inode_number)
+		hardlink_parent_inode = self.INODE_NUMBER_TO_INODE(hardlink_parent_inode_number)
+		# check for None types
+		if not file_inode or not hardlink_parent_inode:
+			return -1
+		# 0 -> file, 1 -> directory
+		if file_inode.type != 0 or hardlink_parent_inode.type != 1:
+			return -1
+
+		if hardlink_name == "" or len(hardlink_name) > config.MAX_FILE_NAME_SIZE:
+			return -1
+
+		hardlink_parent_inode.directory[hardlink_name] = file_inode_number
+		file_inode.links += 1
+
+		return True
 
 
-	#REMOVES THE INODE ENTRY FROM INODE TABLE
+	# REMOVES THE INODE ENTRY FROM INODE TABLE
+	# removes a link in the file system; if it is the last link to be removed for the inode_number, free all blocks associated with the
+	# inode (if it is a file inode), and free the inode. Note: an inode for a non-empty directory cannot be removed.
 	def unlink(self, inode_number, parent_inode_number, filename):
-		'''WRITE YOUR CODE HERE'''
+		inode = self.INODE_NUMBER_TO_INODE(inode_number)
+		parent_inode = self.INODE_NUMBER_TO_INODE(parent_inode_number)
+		# check for None types
+		if not inode or not parent_inode:
+			return -1
+		# 0 -> file, 1 -> directory
+		if inode.type != 0 or parent_inode.type != 1:
+			return -1
 
+		if filename in parent_inode.directory:
+			del parent_inode.directory[filename]
+		else:
+			return -1
 
-	#IMPLEMENTS WRITE FUNCTIONALITY
-	def write(self, inode_number, offset, data, parent_inode_number):
-		'''WRITE YOUR CODE HERE'''
+		# TODO - should this be 1 or 2?
+		if inode.links == 1:
+			interface.free_data_block(inode, 0)
 		
+		inode.links -= 1
 
-	#IMPLEMENTS READ FUNCTIONALITY
+		return True
+
+
+	# IMPLEMENTS WRITE FUNCTIONALITY
+	# writes "data" to a file, starting at "offset".
+	def write(self, inode_number, offset, data, parent_inode_number):
+		inode = self.INODE_NUMBER_TO_INODE(inode_number)
+		parent_inode = self.INODE_NUMBER_TO_INODE(parent_inode_number)
+		# check for None types
+		if not inode or not parent_inode:
+			return -1
+		# 0 -> file, 1 -> directory
+		if inode.type != 0 or parent_inode.type != 1:
+			return -1
+		write_res = interface.write(inode, offset, data)
+		# an error occured if the write_res was -1
+		return True if write_res != -1 else -1
+
+
+	# IMPLEMENTS READ FUNCTIONALITY
+	# reads "length" bytes from a file, starting at offset
 	def read(self, inode_number, offset, length, parent_inode_number):
-		'''WRITE YOUR CODE HERE'''
+		inode = self.INODE_NUMBER_TO_INODE(inode_number)
+		parent_inode = self.INODE_NUMBER_TO_INODE(parent_inode_number)
+		# check for None types
+		if not inode or not parent_inode:
+			return -1
+		# 0 -> file, 1 -> directory
+		if inode.type != 0 or parent_inode.type != 1:
+			return -1
+		read_res = interface.read(inode, offset, length)
+		# an error occured if the read_res was -1
+		return read_res[1] if read_res != -1 else -1
