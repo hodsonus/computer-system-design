@@ -126,7 +126,7 @@ dmypy.json
 .pyre/
 
 # ---------- VSCode Files ----------
-
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

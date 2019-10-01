@@ -56,12 +56,12 @@ class FileNameLayer():
 	#IMPLEMENTS READ
 	def read(self, path, inode_number_cwd, offset, length):
 		path_list = path.split('/')
-		parent_path = "/".join(path_list[:-1])
 
-		inode_number_to_read = self.LOOKUP(path, inode_number_cwd)
-		if (inode_number_to_read == -1): return -1
-		parent_inode_number = self.LOOKUP(parent_path, inode_number_cwd)
+		parent_inode_number = self.LOOKUP(path, inode_number_cwd)
 		if (parent_inode_number == -1): return -1
+		
+		inode_number_to_read = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(path_list[-1], parent_inode_number)
+		if (inode_number_to_read == -1): return -1
 
 		return interface.read(inode_number_to_read, offset, length, parent_inode_number)
 
@@ -69,28 +69,33 @@ class FileNameLayer():
 	#IMPLEMENTS WRITE
 	def write(self, path, inode_number_cwd, offset, data):
 		path_list = path.split('/')
-		parent_path = "/".join(path_list[:-1])
 
-		inode_number_to_write = self.LOOKUP(path, inode_number_cwd)
-		if (inode_number_to_write == -1): return -1
-		parent_inode_number = self.LOOKUP(parent_path, inode_number_cwd)
+		parent_inode_number = self.LOOKUP(path, inode_number_cwd)
 		if (parent_inode_number == -1): return -1
+
+		inode_number_to_write = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(path_list[-1], parent_inode_number)
+		if (inode_number_to_write == -1): return -1
 
 		return interface.write(inode_number_to_write, offset, data, parent_inode_number)
 
 
 	#HARDLINK
 	def link(self, old_path, new_path, inode_number_cwd):
-		file_inode_number = self.LOOKUP(old_path, inode_number_cwd)
-		if (file_inode_number == -1): return -1
 
+		old_path_list = old_path.split('/')
 		new_path_list = new_path.split('/')
 
-		new_path_parent = "/".join(new_path_list[:-1])
-		hardlink_parent_inode_number = self.LOOKUP(new_path_parent, inode_number_cwd)
+		file_parent_inode_number = self.LOOKUP(old_path, inode_number_cwd)
+		if (file_parent_inode_number == -1): return -1
+		file_inode_number = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(old_path_list[-1], file_parent_inode_number)
+		if (file_inode_number == -1): return -1
+
+		hardlink_parent_parent_inode_number = self.LOOKUP(new_path, inode_number_cwd)
+		if (hardlink_parent_parent_inode_number == -1): return -1
+		hardlink_parent_inode_number = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(new_path_list[-1], hardlink_parent_parent_inode_number)
 		if (hardlink_parent_inode_number == -1): return -1
 
-		hardlink_name = new_path_list[-1]
+		hardlink_name = old_path_list[-1]
 
 		return interface.link(file_inode_number, hardlink_name, hardlink_parent_inode_number)
 
@@ -102,14 +107,13 @@ class FileNameLayer():
 			return -1
 		
 		path_list = path.split('/')
-		parent_path = "/".join(path_list[:-1])
 
-		inode_number_to_unlink = self.LOOKUP(path, inode_number_cwd)
-		if (inode_number_to_unlink == -1): return -1
-		parent_directory_inode = self.LOOKUP(parent_path, inode_number_cwd)
+		parent_directory_inode = self.LOOKUP(path, inode_number_cwd)
 		if (parent_directory_inode == -1): return -1
+		inode_number_to_unlink = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(path_list[-1], parent_directory_inode)
+		if (inode_number_to_unlink == -1): return -1
 
-		return interface.unlink(inode_number_to_unlink, parent_directory_inode, path[-1])
+		return interface.unlink(inode_number_to_unlink, parent_directory_inode, path_list[-1])
 
 	#MOVE
 	def mv(self, old_path, new_path, inode_number_cwd):

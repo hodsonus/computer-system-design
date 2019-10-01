@@ -76,6 +76,9 @@ class InodeNumberLayer():
 		hardlink_parent_inode.directory[hardlink_name] = file_inode_number
 		file_inode.links += 1
 
+		self.update_inode_table(hardlink_parent_inode, hardlink_parent_inode_number	)
+		self.update_inode_table(file_inode, file_inode_number)
+
 		return True
 
 
@@ -97,11 +100,14 @@ class InodeNumberLayer():
 		else:
 			return -1
 
-		# TODO - should this be 1 or 2?
-		if inode.links == 1:
-			interface.free_data_block(inode, 0)
-		
 		inode.links -= 1
+
+		if inode.links == 0:
+			interface.free_data_block(inode, 0)
+			del inode
+	
+		self.update_inode_table(inode, inode_number)
+		self.update_inode_table(parent_inode, parent_inode_number)
 
 		return True
 
@@ -111,15 +117,22 @@ class InodeNumberLayer():
 	def write(self, inode_number, offset, data, parent_inode_number):
 		inode = self.INODE_NUMBER_TO_INODE(inode_number)
 		parent_inode = self.INODE_NUMBER_TO_INODE(parent_inode_number)
+
 		# check for None types
 		if not inode or not parent_inode:
 			return -1
 		# 0 -> file, 1 -> directory
 		if inode.type != 0 or parent_inode.type != 1:
 			return -1
-		write_res = interface.write(inode, offset, data)
+
+		inode = interface.write(inode, offset, data)
 		# an error occured if the write_res was -1
-		return True if write_res != -1 else -1
+		if inode == -1: return -1
+
+		self.update_inode_table(inode, inode_number)
+		self.update_inode_table(parent_inode, parent_inode_number)
+
+		return True
 
 
 	# IMPLEMENTS READ FUNCTIONALITY
@@ -127,12 +140,21 @@ class InodeNumberLayer():
 	def read(self, inode_number, offset, length, parent_inode_number):
 		inode = self.INODE_NUMBER_TO_INODE(inode_number)
 		parent_inode = self.INODE_NUMBER_TO_INODE(parent_inode_number)
+
 		# check for None types
 		if not inode or not parent_inode:
 			return -1
 		# 0 -> file, 1 -> directory
 		if inode.type != 0 or parent_inode.type != 1:
 			return -1
+			
 		read_res = interface.read(inode, offset, length)
 		# an error occured if the read_res was -1
-		return read_res[1] if read_res != -1 else -1
+		if (read_res == -1): return -1
+
+		inode, read_data = read_res
+
+		self.update_inode_table(inode, inode_number)
+		self.update_inode_table(parent_inode, parent_inode_number)
+
+		return read_data
