@@ -64,14 +64,15 @@ class InodeNumberLayer():
 		file_inode = self.INODE_NUMBER_TO_INODE(file_inode_number)
 		hardlink_parent_inode = self.INODE_NUMBER_TO_INODE(hardlink_parent_inode_number)
 		# check for None types
-		if not file_inode or not hardlink_parent_inode:
-			return -1
+		if not file_inode or not hardlink_parent_inode: return -1
 		# 0 -> file, 1 -> directory
-		if (file_inode.type != 0 and file_inode.type != 1) or hardlink_parent_inode.type != 1:
-			return -1
+		if (file_inode.type != 0 and file_inode.type != 1) or hardlink_parent_inode.type != 1: return -1
+		if hardlink_name == "" or len(hardlink_name) > config.MAX_FILE_NAME_SIZE: return -1
 
-		if hardlink_name == "" or len(hardlink_name) > config.MAX_FILE_NAME_SIZE:
-			return -1
+		if hardlink_name in hardlink_parent_inode.directory: 
+			self.unlink(hardlink_parent_inode.directory[hardlink_name], \
+						hardlink_parent_inode_number, \
+						hardlink_name)
 
 		hardlink_parent_inode.directory[hardlink_name] = file_inode_number
 		file_inode.name = hardlink_name

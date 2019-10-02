@@ -63,7 +63,6 @@ def test_case_2():
     return my_object
 
 
-
 def test_case_3():
     """ rm for directories (both empty and with files) and files """
     my_object = FileSystemOperations()
@@ -106,7 +105,24 @@ def test_case_3():
 
 
 def test_case_4():
-    """ """
+    """ test replace functionality """
+    my_object = FileSystemOperations()
+
+    my_object.mkdir("/A")
+    my_object.mkdir("/A/B")
+    my_object.create("/A/test.txt")
+    my_object.create("/A/B/test.txt")
+
+    messageA = "A"*500
+    messageAB = "AB"*250
+
+    my_object.write("/A/B/test.txt", messageAB)
+    my_object.write("/A/test.txt", messageA)
+    
+    my_object.mv("/A/B/test.txt", "/A/test.txt")
+
+    my_object.read("/A/test.txt")
+    my_object.status()
 
 
 def test_case_5():
