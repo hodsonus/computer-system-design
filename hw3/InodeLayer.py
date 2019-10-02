@@ -120,13 +120,17 @@ class InodeLayer():
         # validate that we are operating on a file
         self.validate_inode_as_file(inode)
 
-        first_blk_index, last_blk_index = self.calculate_blk_range(offset, length)
+        if (length == -1):
+            first_blk_index, last_blk_index = 0, len(inode.blk_numbers)-1
+            byte_nums_to_read = range(offset, (last_blk_index+1)*config.BLOCK_SIZE)
+        else:
+            first_blk_index, last_blk_index = self.calculate_blk_range(offset, length)
+            byte_nums_to_read = range(offset, offset+length)
 
         # return an error if writing from an offset larger than the file size
         if (first_blk_index >= len(inode.blk_numbers)):
             return -1;
 
-        byte_nums_to_read = range(offset, offset+length)
         curr_byte_num = first_blk_index*config.BLOCK_SIZE
         read_data = ""
 

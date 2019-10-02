@@ -67,6 +67,7 @@ class InodeNumberLayer():
 		if not file_inode or not hardlink_parent_inode:
 			return -1
 		# 0 -> file, 1 -> directory
+		# TODO - should we be able to link 
 		if file_inode.type != 0 or hardlink_parent_inode.type != 1:
 			return -1
 
@@ -74,6 +75,7 @@ class InodeNumberLayer():
 			return -1
 
 		hardlink_parent_inode.directory[hardlink_name] = file_inode_number
+		file_inode.name = hardlink_name
 		file_inode.links += 1
 
 		self.update_inode_table(hardlink_parent_inode, hardlink_parent_inode_number	)
@@ -89,22 +91,28 @@ class InodeNumberLayer():
 		inode = self.INODE_NUMBER_TO_INODE(inode_number)
 		parent_inode = self.INODE_NUMBER_TO_INODE(parent_inode_number)
 		# check for None types
-		if not inode or not parent_inode:
-			return -1
-		# 0 -> file, 1 -> directory
-		if inode.type != 0 or parent_inode.type != 1:
-			return -1
+		if not inode or not parent_inode: return -1
+		if parent_inode.type != 1: return -1
+		if filename not in parent_inode.directory: return -1
 
-		if filename in parent_inode.directory:
-			del parent_inode.directory[filename]
+		# 0 -> file, 1 -> directory
+		if (inode.type == 0):
+
+			inode.links -= 1
+
+			if inode.links == 0:
+
+				interface.free_data_block(inode, 0)
+				inode = None
+
+		elif (inode.type == 1 and len(inode.directory) == 0):
+			
+			inode = None
+		
 		else:
 			return -1
 
-		inode.links -= 1
-
-		if inode.links == 0:
-			interface.free_data_block(inode, 0)
-			del inode
+		del parent_inode.directory[filename]
 	
 		self.update_inode_table(inode, inode_number)
 		self.update_inode_table(parent_inode, parent_inode_number)

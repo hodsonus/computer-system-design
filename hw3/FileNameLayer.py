@@ -90,12 +90,15 @@ class FileNameLayer():
 		file_inode_number = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(old_path_list[-1], file_parent_inode_number)
 		if (file_inode_number == -1): return -1
 
-		hardlink_parent_parent_inode_number = self.LOOKUP(new_path, inode_number_cwd)
+		hardlink_parent_parent_inode_number = self.LOOKUP("/".join(new_path_list[:-1]), inode_number_cwd)
 		if (hardlink_parent_parent_inode_number == -1): return -1
-		hardlink_parent_inode_number = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(new_path_list[-1], hardlink_parent_parent_inode_number)
-		if (hardlink_parent_inode_number == -1): return -1
+		if (len(new_path_list) == 1): # the new path is in the root directory
+			hardlink_parent_inode_number = hardlink_parent_parent_inode_number
+		else:
+			hardlink_parent_inode_number = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(new_path_list[-2], hardlink_parent_parent_inode_number)
+			if (hardlink_parent_inode_number == -1): return -1
 
-		hardlink_name = old_path_list[-1]
+		hardlink_name = new_path_list[-1]
 
 		return interface.link(file_inode_number, hardlink_name, hardlink_parent_inode_number)
 
