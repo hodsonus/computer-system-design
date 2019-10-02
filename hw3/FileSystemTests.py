@@ -17,7 +17,7 @@ def happy_path():
     my_object.write("/A/1.txt", "POCSD", offset)
     my_object.read("/A/1.txt", offset, len("POCSD"))
     my_object.status()
-    my_object.mv("/A/1.txt", "/B")
+    my_object.mv("/A/1.txt", "/B/1.txt")
     my_object.status()
     my_object.status()
     my_object.rm("/B/1.txt")
@@ -73,6 +73,16 @@ def test_case_3():
     my_object.create("/A/1.txt")
     my_object.status()
 
+    my_object.mkdir("/A/B/C")
+    my_object.mkdir("/A/B/C/D")
+    my_object.mkdir("/A/B/C/D/E")
+    my_object.mv("/A/B/C/D/E", "/A/B/C/E")
+    my_object.status()
+
+    my_object.rm("/A/B/C/E")
+    my_object.rm("/A/B/C/D")
+    my_object.rm("/A/B/C")
+
     my_object.rm("/A/B")
 
     message = "PoCSD"
@@ -95,10 +105,8 @@ def test_case_3():
     return my_object
 
 
-
 def test_case_4():
     """ """
-
 
 
 def test_case_5():

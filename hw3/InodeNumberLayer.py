@@ -67,8 +67,7 @@ class InodeNumberLayer():
 		if not file_inode or not hardlink_parent_inode:
 			return -1
 		# 0 -> file, 1 -> directory
-		# TODO - should we be able to link 
-		if file_inode.type != 0 or hardlink_parent_inode.type != 1:
+		if (file_inode.type != 0 and file_inode.type != 1) or hardlink_parent_inode.type != 1:
 			return -1
 
 		if hardlink_name == "" or len(hardlink_name) > config.MAX_FILE_NAME_SIZE:
@@ -94,8 +93,9 @@ class InodeNumberLayer():
 		if not inode or not parent_inode: return -1
 		if parent_inode.type != 1: return -1
 		if filename not in parent_inode.directory: return -1
-
 		# 0 -> file, 1 -> directory
+		if inode.type != 0 and inode.type != 1: return -1
+
 		if (inode.type == 0):
 
 			inode.links -= 1
@@ -105,12 +105,15 @@ class InodeNumberLayer():
 				interface.free_data_block(inode, 0)
 				inode = None
 
-		elif (inode.type == 1 and len(inode.directory) == 0):
-			
-			inode = None
-		
-		else:
-			return -1
+		else: # (inode.type == 1)
+			if inode.links == 2:
+				if (len(inode.directory) == 0):
+					inode = None
+				else:
+					return -1
+
+			else:
+				inode.links -= 1
 
 		del parent_inode.directory[filename]
 	
