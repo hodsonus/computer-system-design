@@ -1,7 +1,5 @@
 # SKELETON CODE FOR CLIENT STUB HW4
 import xmlrpclib, config, pickle
-from pickle import PickleError
-from requests import ConnectionError
 
 class client_stub():
 

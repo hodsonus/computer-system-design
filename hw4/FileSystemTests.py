@@ -1,8 +1,10 @@
 import FileSystem, sys
 from FileSystem import FileSystemOperations
+import time
 
 
 def happy_path():
+    start_time = time.time()
     my_object = FileSystemOperations()
     my_object.status()
     offset = 0
@@ -22,6 +24,8 @@ def happy_path():
     my_object.status()
     my_object.rm("/B/1.txt")
     my_object.rm("/B")
+    end_time = time.time()
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 
 def test_case_1():
