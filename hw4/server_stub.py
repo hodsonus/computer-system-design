@@ -21,7 +21,7 @@ def inode_number_to_inode(inode_number):
     print("Client request received - inode_number_to_inode.")
     try:
         inode_number = pickle.loads(inode_number)
-    except PickleError:
+    except Exception:
         print("Unable to unmarshal data from client.")
         return pickle.dumps(-1)
     retVal = filesystem.inode_number_to_inode(inode_number)
@@ -34,7 +34,7 @@ def get_data_block(block_number):
     print("Client request received - get_data_block")
     try:
         block_number = pickle.loads(block_number)
-    except PickleError:
+    except Exception:
         print("Unable to unmarshal data from client.")
         return pickle.dumps(-1)
     retVal = ''.join(filesystem.get_data_block(block_number))
@@ -55,7 +55,7 @@ def free_data_block(block_number):
     print("Client request received - free_data_block")
     try:
         block_number = pickle.loads(block_number)
-    except PickleError:
+    except Exception:
         print("Unable to unmarshal data from client.")
         return pickle.dumps(-1)
     retVal = filesystem.free_data_block((block_number))
@@ -69,7 +69,7 @@ def update_data_block(block_number, block_data):
     try:
         block_number = pickle.loads(block_number)
         block_data = pickle.loads(block_data)
-    except PickleError:
+    except Exception:
         print("Unable to unmarshal data from client.")
         return pickle.dumps(-1)
     retVal = filesystem.update_data_block(block_number, block_data)
@@ -83,7 +83,7 @@ def update_inode_table(inode, inode_number):
     try:
         inode = pickle.loads(inode)
         inode_number = pickle.loads(inode_number)
-    except PickleError:
+    except Exception:
         print("Unable to unmarshal data from client.")
         return pickle.dumps(-1)
     retVal = filesystem.update_inode_table(inode, inode_number)
