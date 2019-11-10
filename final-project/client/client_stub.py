@@ -11,7 +11,7 @@ class client_stub():
         inode_number = pickle.dumps(inode_number)
         try:
             respVal = self.proxy.inode_number_to_inode(inode_number)
-            respVal = pickle.loads(respVal)
+            respVal, status = pickle.loads(respVal)
         except Exception:
             print("Server Error - terminating program.")
             quit()
@@ -22,7 +22,7 @@ class client_stub():
         block_number = pickle.dumps(block_number)
         try:
             respVal = self.proxy.get_data_block(block_number)
-            respVal = pickle.loads(respVal)
+            respVal, status = pickle.loads(respVal)
         except Exception:
             print("Server Error - terminating program.")
             quit()
@@ -32,7 +32,7 @@ class client_stub():
     def get_valid_data_block(self):
         try:
             respVal = self.proxy.get_valid_data_block()
-            respVal = pickle.loads(respVal)
+            respVal, status = pickle.loads(respVal)
         except Exception:
             print("Server Error - terminating program.")
             quit()
@@ -43,7 +43,7 @@ class client_stub():
         block_number = pickle.dumps(block_number)
         try:
             respVal = self.proxy.free_data_block(block_number)
-            respVal = pickle.loads(respVal)
+            respVal, status = pickle.loads(respVal)
         except Exception:
             print("Server Error - terminating program.")
             quit()
@@ -55,7 +55,7 @@ class client_stub():
         block_data = pickle.dumps(block_data)
         try:
             respVal = self.proxy.update_data_block(block_number, block_data)
-            respVal = pickle.loads(respVal)
+            respVal, status = pickle.loads(respVal)
         except Exception:
             print("Server Error - terminating program.")
             quit()
@@ -68,7 +68,7 @@ class client_stub():
         
         try:
             respVal = self.proxy.update_inode_table(inode, inode_number)
-            respVal = pickle.loads(respVal) 
+            respVal, status = pickle.loads(respVal) 
         except Exception:
             print("Server Error - terminating program.")
             quit()
@@ -78,7 +78,7 @@ class client_stub():
     def status(self):
         try:
             respVal = self.proxy.status()
-            respVal = pickle.loads(respVal)
+            respVal, status = pickle.loads(respVal)
         except Exception:
             print("Server Error - terminating program.")
             quit()
