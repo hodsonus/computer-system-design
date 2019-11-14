@@ -43,8 +43,3 @@ def update_data_block(block_number, block_data):
 #REQUEST TO UPDATE THE UPDATED INODE IN THE INODE TABLE FROM SERVER
 def update_inode_table(inode, inode_number):
     client_stub.update_inode_table(inode, inode_number)
-
-
-#REQUEST FOR THE STATUS OF FILE SYSTEM FROM SERVER
-def status():
-    return client_stub.status()

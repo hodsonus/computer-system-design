@@ -38,14 +38,8 @@ class FileSystemOperations():
     def mv(self, old_path, new_path):
         interface.mv(old_path, new_path)
 
-
-    #CHECK STATUS
-    def status(self):
-        print(MemoryInterface.status())
-
 if __name__ == '__main__':
     #DO NOT MODIFY THIS
     Initialize_My_FileSystem()
     my_object = FileSystemOperations()
-    my_object.status()
     #YOU MAY WRITE YOUR CODE AFTER HERE

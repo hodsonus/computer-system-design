@@ -19,9 +19,7 @@ def configure():
     return retVal
 
 def Initialize():
-    retVal = Memory.Initialize()
-    retVal = pickle.dumps((retVal,state))
-    return retVal
+    Memory.Initialize()
 
 def addr_inode_table():
     retVal = filesystem.addr_inode_table()
@@ -39,25 +37,19 @@ def get_valid_data_block():
     retVal = pickle.dumps((retVal,state))
     return retVal
 
-def free_data_block(block_number):  
+def free_data_block(block_number):
     passVal = pickle.loads(block_number)
-    retVal  = filesystem.free_data_block(passVal)
-    retVal  = pickle.dumps((retVal,state))
-    return retVal
+    filesystem.free_data_block(passVal)
 
 def update_data_block(block_number, block_data):	
     passVal1 = pickle.loads(block_number)
     passVal2 = pickle.loads(block_data)
-    retVal 	 = filesystem.update_data_block(passVal1, passVal2)
-    retVal   = pickle.dumps((retVal,state))
-    return retVal
+    filesystem.update_data_block(passVal1, passVal2)
 
 def update_inode_table(inode, inode_number):
     passVal1 = pickle.loads(inode)
     passVal2 = pickle.loads(inode_number)
-    retVal 	 = filesystem.update_inode_table(passVal1, passVal2)
-    retVal   = pickle.dumps((retVal,state))
-    return retVal
+    filesystem.update_inode_table(passVal1, passVal2)
 
 def inode_number_to_inode(inode_number):
     passVal = pickle.loads(inode_number)
@@ -65,18 +57,13 @@ def inode_number_to_inode(inode_number):
     retVal  = pickle.dumps((retVal,state))
     return retVal
 
-def status():
-    retVal = filesystem.status()
-    retVal = pickle.dumps((retVal,state))
-    return retVal
-
 def corruptData():
+    # TODO, corrupt some data!
     retVal = 'Data Corrupted in server ' + str(portNumber)
     retVal = pickle.dumps((retVal,state))
     return retVal
 
-portNumber = int(sys.argv[1])
-#portNumber = 8000
+portNumber = 8000
 server = SimpleXMLRPCServer(("localhost",portNumber))
 print ("Listening on port " + str(portNumber) +   "...")
 
@@ -90,5 +77,4 @@ server.register_function(free_data_block, 		"free_data_block")
 server.register_function(update_data_block, 	"update_data_block")
 server.register_function(update_inode_table, 	"update_inode_table")
 server.register_function(inode_number_to_inode, "inode_number_to_inode")
-server.register_function(status, 				"status")
 server.serve_forever()

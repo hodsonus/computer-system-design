@@ -49,7 +49,6 @@ class Operations():
             return sblock.ADDR_INODE_BLOCKS[block_number - sblock.INODE_BLOCKS_OFFSET].block
         elif block_number >= sblock.DATA_BLOCKS_OFFSET and block_number < sblock.TOTAL_NO_OF_BLOCKS:
             return sblock.ADDR_DATA_BLOCKS[block_number - sblock.DATA_BLOCKS_OFFSET].block
-        else: print("Memory: Block index out of range or Wrong input!")
         return -1
 
 
@@ -84,50 +83,3 @@ class Operations():
     #RETURNS THE INODE FROM INODE NUMBER
     def inode_number_to_inode(self, inode_number):
         return sblock.ADDR_INODE_BLOCKS[inode_number / sblock.INODES_PER_BLOCK].block[inode_number % sblock.INODES_PER_BLOCK]
-
-    
-    #SHOWS THE STATUS OF DISK LAYOUT IN MEMORY
-    def status(self):
-        counter = 1
-        string = ""
-        string += "\n----------BITMAP: ----------(Block Number : Valid Status)\n"
-        block_number = 0
-        for i in range(2, sblock.INODE_BLOCKS_OFFSET):
-            string += "Bitmap Block : " + str(i - 2) + "\n"
-            b = sblock.ADDR_BITMAP_BLOCKS[i - sblock.BITMAP_BLOCKS_OFFSET].block
-            for j in range(0, len(b)):
-                if j == 20: break   #only to avoid useless data to print
-                string += "\t\t[" + str(block_number + j) + "  :  "  + str(b[j]) + "]  \n"
-            block_number += len(b)
-            if counter == 1: break
-        string += ".....showing just part(20) of 1st bitmap block!\n"
-
-        string += "\n\n----------INODE Blocks: ----------(Inode Number : Inode(Address)\n"
-        inode_number = 0
-        for i in range(sblock.INODE_BLOCKS_OFFSET, sblock.DATA_BLOCKS_OFFSET):
-            string += "Inode Block : " + str(i - sblock.INODE_BLOCKS_OFFSET) + "\n"
-            b = sblock.ADDR_INODE_BLOCKS[i - sblock.INODE_BLOCKS_OFFSET].block
-            for j in range(0, len(b)):
-                string += "\t\t[" + str(inode_number + j) + "  :  "  + str(bool(b[j])) + "]  \n"
-            inode_number += len(b)
-        
-        string += "\n\n----------DATA Blocks: ----------\n  "
-        counter = 0
-        for i in range(sblock.DATA_BLOCKS_OFFSET, sblock.TOTAL_NO_OF_BLOCKS):
-            if counter == 25: 
-                string += "......Showing just part(25) data blocks\n"
-                break
-            string += (str(i) + " : " + "".join(sblock.ADDR_DATA_BLOCKS[i - sblock.DATA_BLOCKS_OFFSET].block)) + "  "
-            counter += 1
-
-        
-        string += "\n\n----------HIERARCHY: ------------\n"
-        for i in range(sblock.INODE_BLOCKS_OFFSET, sblock.DATA_BLOCKS_OFFSET):
-            for j in range(0, sblock.INODES_PER_BLOCK):
-                inode = sblock.ADDR_INODE_BLOCKS[i-sblock.INODE_BLOCKS_OFFSET].block[j]
-                if inode and inode[0]:
-                    string += "\nDIRECTORY: " + inode[1] + "\n"
-                    for x in inode[7]: string += "".join(x[:config.MAX_FILE_NAME_SIZE]) + " || "
-                    string += "\n"
-        
-        return string

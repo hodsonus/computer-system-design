@@ -4,91 +4,151 @@ import xmlrpclib, config, pickle
 class client_stub():
 
     def __init__(self):
-        self.proxy = xmlrpclib.ServerProxy("http://localhost:8000/")
-
+        proxy = []
+        portNum = 8000
+        num_servers = -1
 
     def inode_number_to_inode(self, inode_number):
         inode_number = pickle.dumps(inode_number)
-        try:
-            respVal = self.proxy.inode_number_to_inode(inode_number)
-            respVal, status = pickle.loads(respVal)
+        try: # try server 0 for inode data
+            respVal = self.proxy[0].inode_number_to_inode(inode_number)
+            inode, state = pickle.loads(respVal)
         except Exception:
-            print("Server Error - terminating program.")
-            quit()
+            try: # try server 1 for inode data
+                respVal = self.proxy[1].inode_number_to_inode(inode_number)
+                inode, state
+            except:
+                print("Server errors in servers #0 and #1, terminating program.")
+                quit()
+        return inode
+
+    def get_data_block(self, virtual_block_number):
+        data_server_number = virtual_block_number & 0b1111
+        local_block_number = virtual_block_number >> 4
+        respVal = 0
+        try: # direct read from target server 
+            respVal, state = pickle.loads(\
+                self.proxy[data_server_number].get_data_block(\
+                    pickle.dumps(local_block_number)))
+            if (state == False): raise Exception()
+        except: # target server down or corrupt
+            try: # read all other servers same local block
+                sibling_blocks = []
+                for i in range(self.num_servers):
+                    if i == data_server_number: continue
+                    data, state = pickle.loads(\
+                        self.proxy[i].get_data_block(\
+                            pickle.dumps(local_block_number)))
+                    if (state == False): raise Exception()
+                    sibling_blocks.append(data)
+                respVal = sibling_blocks[0]
+                for i in range(1, len(sibling_blocks)):
+                    respval = respval ^ sibling_blocks[i]
+                # TODO: write to fix corrupted value and correct state?
+            except: # multiple servers down or corrupt
+                print("Server Error - terminating program.")
+                quit()
         return respVal
-
-
-    def get_data_block(self, block_number):
-        block_number = pickle.dumps(block_number)
-        try:
-            respVal = self.proxy.get_data_block(block_number)
-            respVal, status = pickle.loads(respVal)
-        except Exception:
-            print("Server Error - terminating program.")
-            quit()
-        return respVal
-
 
     def get_valid_data_block(self):
+        # returns a valid virtual block number
+        # make sure we never return a parity block here, and for a row number,
+        # ensure that the parity of that row is allocated as well
         try:
-            respVal = self.proxy.get_valid_data_block()
-            respVal, status = pickle.loads(respVal)
+            # determine the candidate blocks
+            v_candidate_blocks = []
+            server_down = False
+            for server_num in range(self.num_servers):
+                try: local_candidate, state = pickle.loads(\
+                    self.proxy[server_num].get_valid_data_block())
+                except: 
+                    if not server_down:
+                        server_down = True
+                        continue
+                    else: raise Exception()
+                v_candidate = local_candidate << 4 | server_num
+                # if the server number is not the parity server for that block row
+                if server_num != local_candidate % num_servers:
+                    v_candidate_blocks.append(v_candidate)
+
+            # take the minimum value from the virtual candidates
+            v_selected = min(v_candidate_blocks)
+
+            server_down = False
+            # free unused temporarily reserved blocks
+            for v_candidate in range(v_candidate_blocks):
+                if v_candidate == v_selected: continue
+                try: self.proxy[v_candidate & 0b1111].free_data_block(pickle.dumps(v_candidate>>4))
+                except: 
+                    if not server_down:
+                        server_down = True
+                        continue
+                    else: raise Exception()
+
         except Exception:
             print("Server Error - terminating program.")
             quit()
-        return respVal
 
+        return v_selected
 
-    def free_data_block(self, block_number):
-        block_number = pickle.dumps(block_number)
+    def free_data_block(self, virtual_block_number):
+        local_block_number = virtual_block_number >> 4
+        server_number = virtual_block_number & 0b1111
         try:
-            respVal = self.proxy.free_data_block(block_number)
-            respVal, status = pickle.loads(respVal)
+            self.proxy[server_number].free_data_block(\
+                            pickle.dumps(local_block_number))
         except Exception:
-            print("Server Error - terminating program.")
-            quit()
-        return respVal
+            print("Error in server #" + server_number + ".")
 
+    def update_data_block(self, virtual_block_number, block_data):
+        local_block_number = virtual_block_number >> 4
+        data_server_number = virtual_block_number & 0b1111
+        parity_server_number = local_block_number % self.num_servers
 
-    def update_data_block(self, block_number, block_data):
-        block_number = pickle.dumps(block_number)
-        block_data = pickle.dumps(block_data)
-        try:
-            respVal = self.proxy.update_data_block(block_number, block_data)
-            respVal, status = pickle.loads(respVal)
+        # TODO - we need logic here to decide what to do when we fail. This is more complicated
+        # then first glance.
+        old_parity_value, state = pickle.loads(\
+            self.proxy[parity_server_number].get_data_block(pickle.dumps(local_block_number)))
+        old_data_value, state = pickle.loads(\
+            self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
+        new_parity_value = old_parity_value ^ old_data_value ^ block_data
+
+        firstFailed = False
+        try: self.proxy[data_server_number].update_data_block(\
+            pickle.dumps(local_block_number), pickle.dumps(block_data))
+        except Exception: firstFailed = True
+        try: self.proxy[parity_server_number].update_data_block(\
+            pickle.dumps(local_block_number), pickle.dumps(new_parity_value))
         except Exception:
-            print("Server Error - terminating program.")
-            quit()
-        return respVal
+            if firstFailed:
+                print("Server errors occured in servers #" + data_server_number +\
+                      " and #" + parity_server_number + ", terminating program.")
+                quit()
 
+        return
 
     def update_inode_table(self, inode, inode_number):
         inode = pickle.dumps(inode)
         inode_number = pickle.dumps(inode_number)
-        
+        server_down = False
+
         try:
-            respVal = self.proxy.update_inode_table(inode, inode_number)
-            respVal, status = pickle.loads(respVal) 
+            for s in range(self.num_servers):
+                try: self.proxy[s].update_inode_table(inode, inode_number)
+                except:
+                    if not server_down: server_down = True
+                    else: raise Exception()
         except Exception:
             print("Server Error - terminating program.")
             quit()
-        return respVal
-
-
-    def status(self):
-        try:
-            respVal = self.proxy.status()
-            respVal, status = pickle.loads(respVal)
-        except Exception:
-            print("Server Error - terminating program.")
-            quit()
-        return respVal
-
 
     # example provided for initialize
-    def Initialize(self):
+    def Initialize(self, num_servers):
         try :
-            self.proxy.Initialize()
+            self.num_servers = num_servers
+            for i in range(num_servers) :
+                self.proxy.append(xmlrpclib.ServerProxy("http://localhost:" + str(self.portNum + i) + "/"))
+                self.proxy[i].Initialize()
         except Exception:
             print("Server Error - terminating program.")
             quit()
