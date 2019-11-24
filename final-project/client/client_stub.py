@@ -1,5 +1,5 @@
 # SKELETON CODE FOR CLIENT STUB HW4
-import xmlrpclib, config, pickle
+import xmlrpclib, config, pickle, sys
 
 class client_stub():
 

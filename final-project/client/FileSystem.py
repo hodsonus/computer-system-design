@@ -1,7 +1,7 @@
 import MemoryInterface, AbsolutePathNameLayer
 
-def Initialize_My_FileSystem():
-    MemoryInterface.Initialize_My_FileSystem()
+def Initialize_My_FileSystem(num_servers):
+    MemoryInterface.Initialize_My_FileSystem(num_servers)
     AbsolutePathNameLayer.AbsolutePathNameLayer().new_entry('/', 1)
 
 #HANDLE TO ABSOLUTE PATH NAME LAYER
@@ -40,6 +40,6 @@ class FileSystemOperations():
 
 if __name__ == '__main__':
     #DO NOT MODIFY THIS
-    Initialize_My_FileSystem()
+    Initialize_My_FileSystem(int(sys.argv[1]))
     my_object = FileSystemOperations()
     #YOU MAY WRITE YOUR CODE AFTER HERE

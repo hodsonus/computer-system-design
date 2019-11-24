@@ -140,7 +140,7 @@ def test_case_4():
 
 
 if __name__ == '__main__':
-    FileSystem.Initialize_My_FileSystem()
+    FileSystem.Initialize_My_FileSystem(4)
     if (len(sys.argv) < 2):
         print("invalid usage")
         exit(0)
