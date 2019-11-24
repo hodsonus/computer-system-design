@@ -19,7 +19,7 @@ def configure():
     return retVal
 
 def Initialize():
-    Memory.Initialize()
+    return pickle.dumps(Memory.Initialize())
 
 def addr_inode_table():
     retVal = filesystem.addr_inode_table()
@@ -39,17 +39,17 @@ def get_valid_data_block():
 
 def free_data_block(block_number):
     passVal = pickle.loads(block_number)
-    filesystem.free_data_block(passVal)
+    return pickle.dumps(filesystem.free_data_block(passVal))
 
 def update_data_block(block_number, block_data):	
     passVal1 = pickle.loads(block_number)
     passVal2 = pickle.loads(block_data)
-    filesystem.update_data_block(passVal1, passVal2)
+    return pickle.dumps(filesystem.update_data_block(passVal1, passVal2))
 
 def update_inode_table(inode, inode_number):
     passVal1 = pickle.loads(inode)
     passVal2 = pickle.loads(inode_number)
-    filesystem.update_inode_table(passVal1, passVal2)
+    return pickle.dumps(filesystem.update_inode_table(passVal1, passVal2))
 
 def inode_number_to_inode(inode_number):
     passVal = pickle.loads(inode_number)

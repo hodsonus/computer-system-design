@@ -19,7 +19,7 @@ for i in range(num_servers) :
 while True:
     serverNum = int(raw_input("Select Server to Corrupt..."))
     try :
-        retVal =  proxy[serverNum].corruptData()
+        retVal = proxy[serverNum].corruptData()
         print(serverNum)
         print(pickle.loads(retVal))
     except Exception as err :
