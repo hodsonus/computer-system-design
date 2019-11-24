@@ -64,8 +64,8 @@ def corruptData():
     return retVal
 
 portNumber = 8000
-server = SimpleXMLRPCServer(("localhost",portNumber))
-print ("Listening on port " + str(portNumber) +   "...")
+server = SimpleXMLRPCServer(("localhost",portNumber+sys.argv[1]))
+print ("Listening on port " + str(portNumber+sys.argv[1]) +   "...")
 
 server.register_function(corruptData, 			"corruptData")
 server.register_function(configure, 		   	"configure")
