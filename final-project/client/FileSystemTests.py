@@ -136,7 +136,9 @@ if __name__ == '__main__':
     
     test_case = sys.argv[1]
 
-    # write 12 {1, 2, 3, 4, 5, 6, 7, 8}-blk files
+    # write [12] {1, 2, 3, 4, 5, 6, 7, 8}-blk files, read, remove
+    # write [4] series of 1-blk and 2-blk files, read, remove
+    # write [4] series of 2-blk and 1-blk files, read, remove
 
     if (test_case == "happy_path"):
         happy_path()
