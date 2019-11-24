@@ -117,7 +117,7 @@ class client_stub():
 
         new_parity_value = old_parity_value
         for i in range(len(old_data_value)): new_parity_value[i] = str(ord(new_parity_value[i]) ^ ord(old_data_value[i]))
-        for i in range(len(split(block_data))): new_parity_value[i] = str(ord(new_parity_value[i]) ^ ord(split(block_data)[i]))
+        for i in range(len(block_data)): new_parity_value[i] = str(ord(new_parity_value[i]) ^ ord(block_data.split()[i]))
 
         firstFailed = False
         try: self.proxy[data_server_number].update_data_block(\
