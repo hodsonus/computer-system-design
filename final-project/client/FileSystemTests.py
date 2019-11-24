@@ -133,7 +133,11 @@ if __name__ == '__main__':
     if (len(sys.argv) < 2):
         print("invalid usage")
         exit(0)
+    
     test_case = sys.argv[1]
+
+    # write 12 {1, 2, 3, 4, 5, 6, 7, 8}-blk files
+
     if (test_case == "happy_path"):
         happy_path()
     elif (test_case == "1"):
