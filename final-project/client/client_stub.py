@@ -117,9 +117,9 @@ class client_stub():
 
         new_parity_value = []
         for i in range(max(len(old_parity_value), max(len(old_data_value), len(block_data)))):
-            old_parity_value = 0 if old_parity_value[i] == "\0" else int(old_parity_value[i])
-            old_data_value = 0 if old_data_value[i] == "\0" else int(old_data_value[i])
-            block_data = 0 if block_data[i] == "\0" else int(block_data[i])
+            old_parity_value = 0 if old_parity_value[i] == "\0" else ord(old_parity_value[i])
+            old_data_value = 0 if old_data_value[i] == "\0" else ord(old_data_value[i])
+            block_data = 0 if block_data[i] == "\0" else ord(block_data[i])
             new_parity_value += str(old_parity_value ^ old_data_value ^ block_data)
 
         firstFailed = False
