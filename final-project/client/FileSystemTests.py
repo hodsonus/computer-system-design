@@ -6,22 +6,15 @@ import time
 def happy_path():
     start_time = time.time()
     my_object = FileSystemOperations()
-    my_object.status()
     offset = 0
     my_object.mkdir("/A")
-    my_object.status()
     my_object.mkdir("/B")
-    my_object.status()
     '''as A is already there we can create file in A'''
     my_object.create("/A/1.txt")
-    my_object.status()
     '''as 1.txt is already created now, we can write to it.'''
     my_object.write("/A/1.txt", "POCSD", offset)
     my_object.read("/A/1.txt", offset, len("POCSD"))
-    my_object.status()
     my_object.mv("/A/1.txt", "/B/1.txt")
-    my_object.status()
-    my_object.status()
     my_object.rm("/B/1.txt")
     my_object.rm("/B")
     end_time = time.time()
@@ -32,17 +25,11 @@ def test_case_1():
     """ mv """
     my_object = FileSystemOperations()
     my_object.mkdir("/A")
-    my_object.status()
     my_object.mkdir("/A/B")
-    my_object.status()
     my_object.create("/A/1.txt")
-    my_object.status()
     my_object.mv("/A/1.txt", "/A/B/1.txt")
-    my_object.status()
     my_object.mv("/A/B/1.txt", "/1.txt")
-    my_object.status()
     my_object.mv("/1.txt", "/A/2.txt")
-    my_object.status()
     return my_object
 
 
@@ -77,43 +64,37 @@ def test_case_3():
     my_object = FileSystemOperations()
 
     my_object.mkdir("/A")
-    my_object.status()
     my_object.mkdir("/A/B")
-    my_object.status()
     my_object.create("/A/1.txt")
-    my_object.status()
 
     my_object.mkdir("/A/B/C")
-    my_object.status()
     my_object.mkdir("/A/B/C/D")
-    my_object.status()
     my_object.mkdir("/A/B/C/D/E")
-    my_object.status()
     my_object.mv("/A/B/C/D/E", "/A/B/C/E")
-    my_object.status()
+    
 
     my_object.rm("/A/B/C/E")
     my_object.rm("/A/B/C/D")
     my_object.rm("/A/B/C")
     my_object.rm("/A/B")
-    my_object.status()
+    
 
     message = "PoCSD"
     my_object.write("/A/1.txt", message)
 
     # should silently fail
     my_object.rm("/A")
-    my_object.status()
+    
 
     my_object.rm("/A/1.txt")
-    my_object.status()
+    
 
     my_object.rm("/A")
-    my_object.status()
+    
 
     # should not be able to remove root
     my_object.rm("/")
-    my_object.status()
+    
 
     return my_object
 
@@ -136,7 +117,7 @@ def test_case_4():
     my_object.mv("/A/B/test.txt", "/A/test.txt")
 
     my_object.read("/A/test.txt")
-    my_object.status()
+    
 
 
 if __name__ == '__main__':
