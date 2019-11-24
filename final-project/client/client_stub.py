@@ -1,5 +1,5 @@
 # SKELETON CODE FOR CLIENT STUB HW4
-import xmlrpclib, config, pickle, sys
+import xmlrpclib, config, pickle, sys, traceback
 
 class client_stub():
 
@@ -18,7 +18,7 @@ class client_stub():
                 respVal = self.proxy[1].inode_number_to_inode(inode_number)
                 inode, state
             except:
-                print("Server errors in servers #0 and #1 [inode_number_to_inode], terminating program.")
+                print("Server error [inode_number_to_inode] - terminating program.") # s in servers #0 and #1
                 quit()
         return inode
 
@@ -151,4 +151,5 @@ class client_stub():
                 self.proxy[i].Initialize()
         except Exception:
             print("Server Error [Initialize] - terminating program.")
+            traceback.print_exc()
             quit()
