@@ -70,7 +70,7 @@ class client_stub():
                     else: raise Exception()
                 v_candidate = local_candidate << 4 | server_num
                 # if the server number is not the parity server for that block row
-                if server_num != local_candidate % num_servers:
+                if server_num != local_candidate % self.num_servers:
                     v_candidate_blocks.append(v_candidate)
 
             # take the minimum value from the virtual candidates
