@@ -115,14 +115,9 @@ class client_stub():
         old_data_value, state = pickle.loads(\
             self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
 
-        print(type(old_parity_value))
-        print(type(old_data_value))
-        print(type(block_data))
-        print(type(old_parity_value[0]))
-        print(type(old_data_value[0]))
-        print(type(block_data[0]))
-
-        new_parity_value = old_parity_value ^ old_data_value ^ block_data
+        new_parity_value = old_parity_value
+        for i in range(len(old_data_value)): new_parity_value[i] ^= old_data_value[i]
+        for i in range(len(split(block_data))): new_parity_value[i] ^= split(block_data)[i]
 
         firstFailed = False
         try: self.proxy[data_server_number].update_data_block(\
