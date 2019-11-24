@@ -117,7 +117,15 @@ def test_case_4():
     my_object.mv("/A/B/test.txt", "/A/test.txt")
 
     my_object.read("/A/test.txt")
-    
+
+def test_case_5():
+    my_object = FileSystemOperations()
+
+    my_object.mkdir("/A")
+    my_object.create("/A/test.txt")
+    messageA = "A"*500
+    my_object.write("/A/test.txt", messageA)
+    my_object.read("/A/test.txt")
 
 
 if __name__ == '__main__':
@@ -136,4 +144,6 @@ if __name__ == '__main__':
         test_case_3()
     elif (test_case == "4"):
         test_case_4()
+    elif (test_case == "5"):
+        test_case_5()
     exit(0)
