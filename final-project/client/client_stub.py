@@ -18,7 +18,7 @@ class client_stub():
                 respVal = self.proxy[1].inode_number_to_inode(inode_number)
                 inode, state
             except:
-                print("Server errors in servers #0 and #1, terminating program.")
+                print("Server errors in servers #0 and #1 [inode_number_to_inode], terminating program.")
                 quit()
         return inode
 
@@ -46,7 +46,7 @@ class client_stub():
                     respval = respval ^ sibling_blocks[i]
                 # TODO: write to fix corrupted value and correct state?
             except: # multiple servers down or corrupt
-                print("Server Error - terminating program.")
+                print("Server Error [get_data_block] - terminating program.")
                 quit()
         return respVal
 
@@ -86,7 +86,7 @@ class client_stub():
                     else: raise Exception()
 
         except Exception:
-            print("Server Error - terminating program.")
+            print("Server Error [get_valid_data_block] - terminating program.")
             quit()
 
         return v_selected
@@ -98,7 +98,7 @@ class client_stub():
             self.proxy[server_number].free_data_block(\
                             pickle.dumps(local_block_number))
         except Exception:
-            print("Error in server #" + server_number + ".")
+            print("Error in server #" + server_number + " [free_data_block].")
 
     def update_data_block(self, virtual_block_number, block_data):
         local_block_number = virtual_block_number >> 4
@@ -121,8 +121,8 @@ class client_stub():
             pickle.dumps(local_block_number), pickle.dumps(new_parity_value))
         except Exception:
             if firstFailed:
-                print("Server errors occured in servers #" + data_server_number +\
-                      " and #" + parity_server_number + ", terminating program.")
+                print("Server error [update_data_block] - terminating program.")
+                #  occured in servers #" + data_server_number + " and #" + parity_server_number + "
                 quit()
 
         return
@@ -139,7 +139,7 @@ class client_stub():
                     if not server_down: server_down = True
                     else: raise Exception()
         except Exception:
-            print("Server Error - terminating program.")
+            print("Server Error [update_inode_table] - terminating program.")
             quit()
 
     # example provided for initialize
@@ -150,5 +150,5 @@ class client_stub():
                 self.proxy.append(xmlrpclib.ServerProxy("http://localhost:" + str(self.portNum + i) + "/"))
                 self.proxy[i].Initialize()
         except Exception:
-            print("Server Error - terminating program.")
+            print("Server Error [Initialize] - terminating program.")
             quit()
