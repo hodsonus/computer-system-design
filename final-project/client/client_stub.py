@@ -78,7 +78,7 @@ class client_stub():
 
             server_down = False
             # free unused temporarily reserved blocks
-            for v_candidate in range(v_candidate_blocks):
+            for v_candidate in v_candidate_blocks:
                 if v_candidate == v_selected: continue
                 try: self.proxy[v_candidate & 0b1111].free_data_block(pickle.dumps(v_candidate>>4))
                 except: 
