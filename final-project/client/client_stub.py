@@ -4,9 +4,9 @@ import xmlrpclib, config, pickle, sys, traceback
 class client_stub():
 
     def __init__(self):
-        proxy = []
-        portNum = 8000
-        num_servers = -1
+        self.proxy = []
+        self.portNum = 8000
+        self.num_servers = -1
 
     def inode_number_to_inode(self, inode_number):
         inode_number = pickle.dumps(inode_number)
@@ -19,6 +19,7 @@ class client_stub():
                 inode, state
             except:
                 print("Server error [inode_number_to_inode] - terminating program.") # s in servers #0 and #1
+                traceback.print_exc()
                 quit()
         return inode
 
@@ -47,6 +48,7 @@ class client_stub():
                 # TODO: write to fix corrupted value and correct state?
             except: # multiple servers down or corrupt
                 print("Server Error [get_data_block] - terminating program.")
+                traceback.print_exc()
                 quit()
         return respVal
 
@@ -87,6 +89,7 @@ class client_stub():
 
         except Exception:
             print("Server Error [get_valid_data_block] - terminating program.")
+            traceback.print_exc()
             quit()
 
         return v_selected
@@ -123,6 +126,7 @@ class client_stub():
             if firstFailed:
                 print("Server error [update_data_block] - terminating program.")
                 #  occured in servers #" + data_server_number + " and #" + parity_server_number + "
+                traceback.print_exc()
                 quit()
 
         return
@@ -140,6 +144,7 @@ class client_stub():
                     else: raise Exception()
         except Exception:
             print("Server Error [update_inode_table] - terminating program.")
+            traceback.print_exc()
             quit()
 
     # example provided for initialize
