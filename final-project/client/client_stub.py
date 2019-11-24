@@ -95,13 +95,15 @@ class client_stub():
         return v_selected
 
     def free_data_block(self, virtual_block_number):
+        if virtual_block_number == -1: return
         local_block_number = virtual_block_number >> 4
         server_number = virtual_block_number & 0b1111
         try:
             self.proxy[server_number].free_data_block(\
                             pickle.dumps(local_block_number))
         except Exception:
-            print("Error in server #" + server_number + " [free_data_block].")
+            print("Error in server #" + str(server_number) + " [free_data_block].")
+            traceback.print_exc()
 
     def update_data_block(self, virtual_block_number, block_data):
         local_block_number = virtual_block_number >> 4
@@ -115,9 +117,11 @@ class client_stub():
         old_data_value, state = pickle.loads(\
             self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
 
-        new_parity_value = old_parity_value
-        for i in range(len(old_data_value)): new_parity_value[i] = str(ord(new_parity_value[i]) ^ ord(old_data_value[i]))
-        for i in range(len(block_data)): new_parity_value[i] = str(ord(new_parity_value[i]) ^ ord(block_data.split()[i]))
+        new_parity_value = list(old_parity_value)
+        for i in range(len(old_data_value)):
+            new_parity_value[i] = chr(ord(new_parity_value[i]) ^ ord(old_data_value[i]))
+        for i in range(len(block_data)):
+            new_parity_value[i] = chr(ord(new_parity_value[i]) ^ ord(block_data[i]))
 
         firstFailed = False
         try: self.proxy[data_server_number].update_data_block(\

@@ -27,6 +27,7 @@ class FileSystemOperations():
     def read(self, path, offset=0, size=-1):
         read_buffer = interface.read(path, offset, size)
         if read_buffer != -1: print(path + " : " + read_buffer)
+        return read_buffer
 
     
     #DELETE

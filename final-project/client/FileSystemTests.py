@@ -1,6 +1,6 @@
 import FileSystem, sys
 from FileSystem import FileSystemOperations
-import time
+import time, config
 
 
 def happy_path():
@@ -127,29 +127,72 @@ def test_case_5():
     my_object.write("/A/test.txt", messageA)
     my_object.read("/A/test.txt")
 
+def test_case_6(my_object):
+    print('case 6')
+    for i in range(12):
+        name = '/dir'*(i+1)
+        my_object.mkdir(name)
+    for j in range(1, 8):
+        for i in range(12):
+            name = '/dir'*(i)+'/file'
+            msg = chr(ord("a")+i)*config.BLOCK_SIZE*j
+            my_object.create(name)
+            my_object.write(name, msg)
+            assert(msg == my_object.read(name))
+        for i in range(12):
+            name = '/dir'*(i)+'/file'
+            my_object.rm(name)
+
+def test_case_7(my_object):
+    print('case 7')
+    for i in range(8):
+        name = '/dir'*(i)+'/file'
+        msg = chr(ord("a")+i)*config.BLOCK_SIZE*(1+(i%2))
+        my_object.create(name)
+        my_object.write(name, msg)
+        assert(msg == my_object.read(name))
+    for i in range(8):
+        name = '/dir'*(i)+'/file'
+        my_object.rm(name)
+
+def test_case_8(my_object):
+    print('case 8')
+    for i in range(8):
+        name = '/dir'*(i)+'/file'
+        msg = chr(ord("a")+i)*config.BLOCK_SIZE*(1+((i+1)%2))
+        my_object.create(name)
+        my_object.write(name, msg)
+        assert(msg == my_object.read(name))
+    for i in range(8):
+        name = '/dir'*(i)+'/file'
+        my_object.rm(name)
+
+def test_case_9(my_object):
+    print('case 9')
+    my_object.create('/file')
+    my_object.mv('/file', '/dir/file')
+    my_object.rm('/dir/file')
 
 if __name__ == '__main__':
     FileSystem.Initialize_My_FileSystem(4)
     if (len(sys.argv) < 2):
-        print("invalid usage")
+        my_object = FileSystemOperations()
+        test_case_6(my_object)
+        test_case_7(my_object)
+        test_case_8(my_object)
+        test_case_9(my_object)
         exit(0)
     
     test_case = sys.argv[1]
 
-    # write [12] {1, 2, 3, 4, 5, 6, 7, 8}-blk files, read, remove
-    # write [4] series of 1-blk and 2-blk files, read, remove
-    # write [4] series of 2-blk and 1-blk files, read, remove
-
-    if (test_case == "happy_path"):
-        happy_path()
-    elif (test_case == "1"):
-        test_case_1()
-    elif (test_case == "2"):
-        test_case_2()
-    elif (test_case == "3"):
-        test_case_3()
-    elif (test_case == "4"):
-        test_case_4()
-    elif (test_case == "5"):
-        test_case_5()
+    if (test_case == "happy_path"): happy_path()
+    elif (test_case == "1"): test_case_1()
+    elif (test_case == "2"): test_case_2()
+    elif (test_case == "3"): test_case_3()
+    elif (test_case == "4"): test_case_4()
+    elif (test_case == "5"): test_case_5()
+    elif (test_case == "6"): test_case_6()
+    elif (test_case == "7"): test_case_7()
+    elif (test_case == "8"): test_case_8()
+    elif (test_case == "9"): test_case_9()
     exit(0)

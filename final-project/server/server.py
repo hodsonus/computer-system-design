@@ -8,10 +8,9 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 import time, Memory, pickle , InodeOps, config, DiskLayout, sys
 
 global portNumber
-
 filesystem = Memory.Operations()
-
 state = True
+RAID_REQ = 0
 
 def configure():
     configuration = [config.TOTAL_NO_OF_BLOCKS, config.BLOCK_SIZE, config.MAX_NUM_INODES, config.INODE_SIZE, config.MAX_FILE_NAME_SIZE]
@@ -30,6 +29,9 @@ def get_data_block(block_number):
     passVal = pickle.loads(block_number)
     retVal  = filesystem.get_data_block(passVal)
     retVal  = pickle.dumps((retVal,state))
+    global RAID_REQ
+    RAID_REQ += 1
+    print(RAID_REQ)
     return retVal
 
 def get_valid_data_block():	
@@ -43,7 +45,10 @@ def free_data_block(block_number):
 
 def update_data_block(block_number, block_data):	
     passVal1 = pickle.loads(block_number)
-    passVal2 = pickle.loads(block_data)
+    passVal2 = pickle.loads(block_data)    
+    global RAID_REQ
+    RAID_REQ += 1
+    print(RAID_REQ)
     return pickle.dumps(filesystem.update_data_block(passVal1, passVal2))
 
 def update_inode_table(inode, inode_number):
