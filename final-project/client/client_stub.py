@@ -16,7 +16,7 @@ class client_stub():
         except Exception:
             try: # try server 1 for inode data
                 respVal = self.proxy[1].inode_number_to_inode(inode_number)
-                inode, state
+                inode, state = pickle.loads(respVal)
             except:
                 print("Server error [inode_number_to_inode] - terminating program.") # s in servers #0 and #1
                 traceback.print_exc()
@@ -42,9 +42,13 @@ class client_stub():
                             pickle.dumps(local_block_number)))
                     if (state == False): raise Exception()
                     sibling_blocks.append(data)
-                respVal = sibling_blocks[0]
-                for i in range(1, len(sibling_blocks)):
-                    respval = respval ^ sibling_blocks[i]
+
+                respVal = list(sibling_blocks[0])
+                for sibling_index in range(1,len(sibling_blocks)):
+                    sibling = sibling_blocks[sibling_index]
+                    for i in range(len(sibling)):
+                        respVal[i] = chr(ord(respVal[i]) ^ ord(sibling[i]))    
+
                 # TODO: write to fix corrupted value and correct state?
             except: # multiple servers down or corrupt
                 print("Server Error [get_data_block] - terminating program.")

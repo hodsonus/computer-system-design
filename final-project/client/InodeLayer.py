@@ -129,7 +129,7 @@ class InodeLayer():
 
         # return an error if writing from an offset larger than the file size
         if (first_blk_index >= len(inode.blk_numbers)):
-            return -1;
+            return -1
 
         curr_byte_num = first_blk_index*config.BLOCK_SIZE
         read_data = ""
@@ -141,7 +141,7 @@ class InodeLayer():
             # read beyond the maximum size of a file
             curr_blk_num = self.INDEX_TO_BLOCK_NUMBER(inode, curr_blk_index)
             if curr_blk_num == -1:
-                break;
+                break
 
             # read data at blk_num
             curr_blk_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(curr_blk_num)
