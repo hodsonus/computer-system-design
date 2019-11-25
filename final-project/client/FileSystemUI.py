@@ -4,17 +4,13 @@ from FileSystem import FileSystemOperations
 import time, config, traceback
 
 def file_system_repl():
-    print("Hello, this is a demo for our RAID 5 file system. We are able to tolerate a fail-stop of one server/disk and recover all data.\n")
-
-    print("Please input the number of servers, between 4 and 16, that you would like to test this with. Ensure that this number of servers reflects the number of servers instantiated with backChannel.py")
-    FileSystem.Initialize_My_FileSystem(int(input()))
+    fsop = FileSystemOperations()
 
     invalid_command = "That was not a recognized command, please follow the formatting seen in the menu choices."
     menu = "mkdir <path>\ncreate <path>\nmv <old_path> <new_path>\nread <path> <offset>=0 <size>=-1\nwrite <path> <data> <offset>=0 <delay>=0\nstatus\nrm <path>\nexit"
     print(menu)
     print("Choose from the above commands in the following terminal:")
 
-    fsop = FileSystemOperations()
     while True:
         print("$ ", end="")
         try:
@@ -87,4 +83,11 @@ def file_system_repl():
             continue
         
 if __name__ == "__main__":
+    print("Hello, this is a demo for our RAID 5 file system. We are able to tolerate a fail-stop of one server/disk and recover all data.\n")
+    print("Please input the number of servers, between 4 and 16, that you would like to test this with. Ensure that this number of servers reflects the number of servers instantiated with backChannel.py")
+    num_servers = int(input())
+    while num_servers < 4 or num_servers > 16:
+        print('Please enter a number of servers between 4 and 16.')
+        num_servers = int(input())
+    FileSystem.Initialize_My_FileSystem(num_servers)
     file_system_repl()

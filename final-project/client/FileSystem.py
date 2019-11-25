@@ -40,7 +40,9 @@ class FileSystemOperations():
         interface.mv(old_path, new_path)
 
 if __name__ == '__main__':
-    #DO NOT MODIFY THIS
-    Initialize_My_FileSystem(int(sys.argv[1]))
-    my_object = FileSystemOperations()
-    #YOU MAY WRITE YOUR CODE AFTER HERE
+    num_servers = int(sys.argv[1])
+    if num_servers < 4 or num_servers > 16:
+        print("Must use between 4 and 16 servers - terminating program.")
+        quit()
+    Initialize_My_FileSystem(num_servers)
+    file_system_repl()

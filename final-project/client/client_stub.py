@@ -221,12 +221,19 @@ class client_stub():
 
     # example provided for initialize
     def Initialize(self, num_servers):
-        try :
-            self.num_servers = num_servers
-            for i in range(num_servers) :
+        if num_servers < 4 or num_servers > 16:
+            print("Must use between 4 and 16 servers - terminating program.")
+            quit()
+        
+        for i in range(num_servers):
+            try:
                 self.proxy.append(xmlrpclib.ServerProxy("http://localhost:" + str(self.portNum + i) + "/"))
                 self.proxy[i].Initialize()
-        except Exception:
-            print("Server Error [Initialize] - terminating program.")
-            traceback.print_exc()
+            except Exception: pass
+        self.num_servers = len(self.proxy)
+
+        print("Failed to connect to " + str(num_servers - self.num_servers) + " servers.")
+        if self.num_servers < 4:
+            print("Insufficient servers connected to run client - terminating program.")
             quit()
+        print("Running client with " + str(self.num_servers) + " servers up.")
