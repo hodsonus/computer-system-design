@@ -14,10 +14,12 @@ class client_stub():
         try: # try server 0 for inode data
             respVal = self.proxy[0].inode_number_to_inode(inode_number)
             inode, state = pickle.loads(respVal)
+            if state == False: raise Exception()
         except Exception:
             try: # try server 1 for inode data
                 respVal = self.proxy[1].inode_number_to_inode(inode_number)
                 inode, state = pickle.loads(respVal)
+                if state == False: raise Exception()
             except:
                 print("Server error [inode_number_to_inode] - terminating program.") # s in servers #0 and #1
                 traceback.print_exc()
@@ -30,7 +32,7 @@ class client_stub():
         respVal = 0
         try: # direct read from target server
             print("Reading data from the data server (" + str(data_server_number) + ").")
-            sleep(delay_sec * 1000) #TODO
+            sleep(delay_sec)
             respVal, state = pickle.loads(\
                 self.proxy[data_server_number].get_data_block(\
                     pickle.dumps(local_block_number)))
@@ -70,8 +72,10 @@ class client_stub():
             v_candidate_blocks = []
             server_down = False
             for server_num in range(self.num_servers):
-                try: local_candidate, state = pickle.loads(\
-                    self.proxy[server_num].get_valid_data_block())
+                try:
+                    local_candidate, state = pickle.loads(self.proxy[server_num].get_valid_data_block())
+                    if state == False:
+                        raise Exception()
                 except: 
                     if not server_down:
                         server_down = True
@@ -116,7 +120,7 @@ class client_stub():
 
     def _update_data(self, data_server_number, local_block_number, block_data, delay_sec):
         print("Writing data to server (" + str(data_server_number) + ").")
-        sleep(delay_sec * 1000)
+        sleep(delay_sec)
         self.proxy[data_server_number].update_data_block(\
             pickle.dumps(local_block_number), pickle.dumps(block_data))
     
@@ -129,7 +133,7 @@ class client_stub():
             new_parity_value[i] = chr(ord(new_parity_value[i]) ^ ord(block_data[i]))
         
         print("Writing parity to server (" + str(parity_server_number) + ").")
-        sleep(delay_sec * 1000)
+        sleep(delay_sec)
         self.proxy[parity_server_number].update_data_block(\
             pickle.dumps(local_block_number), pickle.dumps(new_parity_value))
 
@@ -139,13 +143,17 @@ class client_stub():
         parity_server_number = local_block_number % self.num_servers
 
         data_down, parity_down = False, False
-        try: old_parity_value, state = pickle.loads(\
-                 self.proxy[parity_server_number].get_data_block(pickle.dumps(local_block_number)))
+        try:
+            old_parity_value, state = pickle.loads(self.proxy[parity_server_number].get_data_block(pickle.dumps(local_block_number)))
+            if state == False:
+                raise Exception()
         except:
             print("Parity server (" + str(parity_server_number) + ") is down.")
             parity_down = True
-        try: old_data_value, state = pickle.loads(\
-                 self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
+        try:
+            old_data_value, state = pickle.loads(self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
+            if state == False:
+                raise Exception()
         except:
             print("Data server (" + str(data_server_number) + ") is down.")
             data_down = True

@@ -64,6 +64,7 @@ def inode_number_to_inode(inode_number):
 
 def corruptData():
     # TODO, corrupt some data!
+    global state
     state = False
     retVal = 'Data Corrupted in server ' + str(portNumber)
     retVal = pickle.dumps((retVal,state))
