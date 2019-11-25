@@ -20,7 +20,7 @@ class InodeLayer():
         index = offset / config.BLOCK_SIZE
         block_number = self.INDEX_TO_BLOCK_NUMBER(inode, index)
         if block_number == -1: return ''
-        else: return interface.BLOCK_NUMBER_TO_DATA_BLOCK(block_number)
+        else: return interface.BLOCK_NUMBER_TO_DATA_BLOCK(block_number, delay_sec=0)
 
 
     #MAKES NEW INODE OBJECT
@@ -67,7 +67,7 @@ class InodeLayer():
 
 
     #IMPLEMENTS WRITE FUNCTIONALITY
-    def write(self, inode, offset, data):
+    def write(self, inode, offset, data, delay_sec):
         # return an error if the inode type is not a file
         self.validate_inode_as_file(inode)
 
@@ -86,7 +86,7 @@ class InodeLayer():
 
             # truncate data if attempting to write beyond the maximum size of a file
             if (curr_blk_index >= len(inode.blk_numbers)):
-                break;
+                break
 
             blk_num = inode.blk_numbers[curr_blk_index]
             if blk_num == -1:
@@ -94,7 +94,7 @@ class InodeLayer():
                 inode.blk_numbers[curr_blk_index] = blk_num
 
             # read data at blk_num
-            old_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(blk_num)
+            old_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(blk_num, delay_sec=0)
             data_to_write = ""
 
             # builds data_to_write from either the old_data or data, dependent on the curr_byte_num
@@ -106,7 +106,7 @@ class InodeLayer():
                     data_to_write += old_data_byte
                 curr_byte_num += 1
 
-            interface.update_data_block(blk_num, data_to_write)
+            interface.update_data_block(blk_num, data_to_write, delay_sec)
 
         # update "accessed" and "modified" times in the inode
         inode.time_modified = str(datetime.datetime.now())[:19]
@@ -116,7 +116,7 @@ class InodeLayer():
         return inode
 
     #IMPLEMENTS THE READ FUNCTION 
-    def read(self, inode, offset, length): 
+    def read(self, inode, offset, length, delay_sec): 
         # validate that we are operating on a file
         self.validate_inode_as_file(inode)
 
@@ -144,7 +144,7 @@ class InodeLayer():
                 break
 
             # read data at blk_num
-            curr_blk_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(curr_blk_num)
+            curr_blk_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(curr_blk_num, delay_sec)
 
             # choose data from either the old data or the new string, dependent on the curr_byte_num
             for curr_data_byte in curr_blk_data:
@@ -163,7 +163,7 @@ class InodeLayer():
         self.validate_inode_as_file(old_inode)
         
         # sets the type of the new inode
-        new_inode = self.new_inode(old_inode.type);
+        new_inode = self.new_inode(old_inode.type)
         
         # perform a deep copy on all of the old_inode blocks
         for i in range(0,len(old_inode.blk_numbers)):
@@ -172,9 +172,9 @@ class InodeLayer():
             if (old_blk_num == -1):
                 continue
             # retrieve the old data and set the new data to be the old data
-            old_blk_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(old_blk_num)
+            old_blk_data = interface.BLOCK_NUMBER_TO_DATA_BLOCK(old_blk_num, delay_sec=0)
             new_blk_num = interface.get_valid_data_block()
-            interface.update_data_block(new_blk_num, old_blk_data)
+            interface.update_data_block(new_blk_num, old_blk_data, delay_sec=0)
 
             # persist the new block number that was allocated in the blk_numbers list of the new_inode
             new_inode.blk_numbers[i] = new_blk_num

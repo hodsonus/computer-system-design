@@ -1,5 +1,6 @@
 # SKELETON CODE FOR CLIENT STUB HW4
 import xmlrpclib, config, pickle, sys, traceback
+from time import sleep
 
 class client_stub():
 
@@ -23,20 +24,24 @@ class client_stub():
                 quit()
         return inode
 
-    def get_data_block(self, virtual_block_number):
+    def get_data_block(self, virtual_block_number, delay_sec):
         data_server_number = virtual_block_number & 0b1111
         local_block_number = virtual_block_number >> 4
         respVal = 0
-        try: # direct read from target server 
+        try: # direct read from target server
+            print("Reading data from the data server (" + str(data_server_number) + ").")
+            sleep(delay_sec * 1000) #TODO
             respVal, state = pickle.loads(\
                 self.proxy[data_server_number].get_data_block(\
                     pickle.dumps(local_block_number)))
             if (state == False): raise Exception()
         except: # target server down or corrupt
             try: # read all other servers same local block
+                print("Target server down, reconstructing data from other servers.")
                 sibling_blocks = []
                 for i in range(self.num_servers):
                     if i == data_server_number: continue
+                    print("Reading data from the data server (" + str(i) + ").")
                     data, state = pickle.loads(\
                         self.proxy[i].get_data_block(\
                             pickle.dumps(local_block_number)))
@@ -109,34 +114,82 @@ class client_stub():
             print("Error in server #" + str(server_number) + " [free_data_block].")
             traceback.print_exc()
 
-    def update_data_block(self, virtual_block_number, block_data):
-        local_block_number = virtual_block_number >> 4
-        data_server_number = virtual_block_number & 0b1111
-        parity_server_number = local_block_number % self.num_servers
-
-        # TODO - we need logic here to decide what to do when we fail. This is more complicated
-        # then first glance.
-        old_parity_value, state = pickle.loads(\
-            self.proxy[parity_server_number].get_data_block(pickle.dumps(local_block_number)))
-        old_data_value, state = pickle.loads(\
-            self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
-
+    def _update_data(self, data_server_number, local_block_number, block_data, delay_sec):
+        print("Writing data to server (" + str(data_server_number) + ").")
+        sleep(delay_sec * 1000)
+        self.proxy[data_server_number].update_data_block(\
+            pickle.dumps(local_block_number), pickle.dumps(block_data))
+    
+    def _update_parity(self, parity_server_number, local_block_number, old_parity_value, \
+        old_data_value, block_data, delay_sec):
         new_parity_value = list(old_parity_value)
         for i in range(len(old_data_value)):
             new_parity_value[i] = chr(ord(new_parity_value[i]) ^ ord(old_data_value[i]))
         for i in range(len(block_data)):
             new_parity_value[i] = chr(ord(new_parity_value[i]) ^ ord(block_data[i]))
-
-        firstFailed = False
-        try: self.proxy[data_server_number].update_data_block(\
-            pickle.dumps(local_block_number), pickle.dumps(block_data))
-        except Exception: firstFailed = True
-        try: self.proxy[parity_server_number].update_data_block(\
+        
+        print("Writing parity to server (" + str(parity_server_number) + ").")
+        sleep(delay_sec * 1000)
+        self.proxy[parity_server_number].update_data_block(\
             pickle.dumps(local_block_number), pickle.dumps(new_parity_value))
-        except Exception:
-            if firstFailed:
-                print("Server error [update_data_block] - terminating program.")
-                #  occured in servers #" + data_server_number + " and #" + parity_server_number + "
+
+    def update_data_block(self, virtual_block_number, block_data, delay_sec):
+        local_block_number = virtual_block_number >> 4
+        data_server_number = virtual_block_number & 0b1111
+        parity_server_number = local_block_number % self.num_servers
+
+        data_down, parity_down = False, False
+        try: old_parity_value, state = pickle.loads(\
+                 self.proxy[parity_server_number].get_data_block(pickle.dumps(local_block_number)))
+        except:
+            print("Parity server (" + str(parity_server_number) + ") is down.")
+            parity_down = True
+        try: old_data_value, state = pickle.loads(\
+                 self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
+        except:
+            print("Data server (" + str(data_server_number) + ") is down.")
+            data_down = True
+
+        if parity_down and data_down:
+            print("Multiple server errors [update_data_block], terminating.")
+            traceback.print_exc()
+            quit()
+
+        if parity_down and not data_down:
+            # update data, skip parity update
+            print("Skipping parity update to server (" + str(parity_server_number) + ").")
+            try: self._update_data(data_server_number, local_block_number, block_data, delay_sec)
+            except:
+                print("Multiple server errors [update_data_block], terminating.")
+                traceback.print_exc()
+                quit()
+
+        if not parity_down and data_down:
+            # skip data update, update parity
+            print("Skipping data update to server (" + str(data_server_number) + ").")
+            # rely on get_data_block for good data and perform update
+            old_data_value = self.get_data_block(virtual_block_number, delay_sec=0)
+            try: self._update_parity(parity_server_number, local_block_number, old_parity_value, \
+                     old_data_value, block_data, delay_sec)
+            except:
+                print("Multiple server errors [update_data_block], terminating.")
+                traceback.print_exc()
+                quit()
+
+        if not parity_down and not data_down:
+            # update data and parity
+            try: self._update_data(data_server_number, local_block_number, block_data, delay_sec)
+            except:
+                print("Data server (" + str(data_server_number) + ") is down.")
+                data_down = True
+            try: self._update_parity(parity_server_number, local_block_number, old_parity_value, \
+                     old_data_value, block_data, delay_sec)
+            except:
+                print("Parity server (" + str(parity_server_number) + ") is down.")
+                parity_down = True
+            
+            if (parity_down and data_down):
+                print("Multiple server errors [update_data_block], terminating.")
                 traceback.print_exc()
                 quit()
 

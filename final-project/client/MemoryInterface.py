@@ -11,7 +11,7 @@ client_stub = client_stub.client_stub()
 def Initialize_My_FileSystem(num_servers):
     print("File System Initializing......")
     time.sleep(2)
-    state = client_stub.Initialize(num_servers)
+    client_stub.Initialize(num_servers)
     print("File System Initialized!")
 
 
@@ -21,8 +21,8 @@ def inode_number_to_inode(inode_number):
 
 
 #REQUEST THE DATA FROM THE SERVER
-def get_data_block(block_number):
-    return ''.join(client_stub.get_data_block(block_number))
+def get_data_block(block_number, delay_sec):
+    return ''.join(client_stub.get_data_block(block_number, delay_sec))
 
 
 #REQUESTS THE VALID BLOCK NUMBER FROM THE SERVER 
@@ -36,8 +36,8 @@ def free_data_block(block_number):
 
 
 #REQUEST TO WRITE DATA ON THE THE SERVER
-def update_data_block(block_number, block_data):
-    client_stub.update_data_block(block_number, block_data)
+def update_data_block(block_number, block_data, delay_sec):
+    client_stub.update_data_block(block_number, block_data, delay_sec)
 
 
 #REQUEST TO UPDATE THE UPDATED INODE IN THE INODE TABLE FROM SERVER

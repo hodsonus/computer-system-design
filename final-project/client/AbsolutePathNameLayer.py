@@ -31,21 +31,21 @@ class AbsolutePathNameLayer():
 
 
     #IMPLEMENTS READ 
-    def read(self, path, offset, length):
+    def read(self, path, offset, length, delay_sec):
         inode_number_of_parent = self.GENERAL_PATH_TO_HOME_INODE_NUMBER(path)
         if inode_number_of_parent == -1: 
             print("Error AbsolutePathLayer: Wrong Path Given!\n")
             return -1
-        return interface.read(path[1:], inode_number_of_parent, offset, length)
+        return interface.read(path[1:], inode_number_of_parent, offset, length, delay_sec)
 
 
     #IMPLEMENTS WRITE
-    def write(self, path, offset, data):
+    def write(self, path, offset, data, delay_sec):
         inode_number_of_parent = self.GENERAL_PATH_TO_HOME_INODE_NUMBER(path)
         if inode_number_of_parent == -1: 
             print("Error AbsolutePathLayer: Wrong Path Given!\n")
             return -1
-        interface.write(path[1:], inode_number_of_parent, offset, data)
+        interface.write(path[1:], inode_number_of_parent, offset, data, delay_sec)
 
 
     #IMPLEMENTS THE HARDLINK

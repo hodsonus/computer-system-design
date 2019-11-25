@@ -54,7 +54,7 @@ class FileNameLayer():
 
 
     #IMPLEMENTS READ
-    def read(self, path, inode_number_cwd, offset, length):
+    def read(self, path, inode_number_cwd, offset, length, delay_sec):
         path_list = path.split('/')
 
         parent_inode_number = self.LOOKUP(path, inode_number_cwd)
@@ -63,11 +63,11 @@ class FileNameLayer():
         inode_number_to_read = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(path_list[-1], parent_inode_number)
         if (inode_number_to_read == -1): return -1
 
-        return interface.read(inode_number_to_read, offset, length, parent_inode_number)
+        return interface.read(inode_number_to_read, offset, length, parent_inode_number, delay_sec)
 
 
     #IMPLEMENTS WRITE
-    def write(self, path, inode_number_cwd, offset, data):
+    def write(self, path, inode_number_cwd, offset, data, delay_sec):
         path_list = path.split('/')
 
         parent_inode_number = self.LOOKUP(path, inode_number_cwd)
@@ -76,7 +76,7 @@ class FileNameLayer():
         inode_number_to_write = self.CHILD_INODE_NUMBER_FROM_PARENT_INODE_NUMBER(path_list[-1], parent_inode_number)
         if (inode_number_to_write == -1): return -1
 
-        return interface.write(inode_number_to_write, offset, data, parent_inode_number)
+        return interface.write(inode_number_to_write, offset, data, parent_inode_number, delay_sec)
 
 
     #HARDLINK

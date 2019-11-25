@@ -25,7 +25,7 @@ class InodeNumberLayer():
         if not inode:
             print("Error InodeNumberLayer: Wrong Inode Number! \n")
             return -1
-        return interface.read(inode, offset, length)
+        return interface.read(inode, offset, length, delay_sec=0)
 
 
     #PLEASE DO NOT MODIFY
@@ -126,7 +126,7 @@ class InodeNumberLayer():
 
     # IMPLEMENTS WRITE FUNCTIONALITY
     # writes "data" to a file, starting at "offset".
-    def write(self, inode_number, offset, data, parent_inode_number):
+    def write(self, inode_number, offset, data, parent_inode_number, delay_sec):
         inode = self.INODE_NUMBER_TO_INODE(inode_number)
         parent_inode = self.INODE_NUMBER_TO_INODE(parent_inode_number)
 
@@ -137,7 +137,7 @@ class InodeNumberLayer():
         if inode.type != 0 or parent_inode.type != 1:
             return -1
 
-        inode = interface.write(inode, offset, data)
+        inode = interface.write(inode, offset, data, delay_sec)
         # an error occured if the write_res was -1
         if inode == -1: return -1
 
@@ -149,7 +149,7 @@ class InodeNumberLayer():
 
     # IMPLEMENTS READ FUNCTIONALITY
     # reads "length" bytes from a file, starting at offset
-    def read(self, inode_number, offset, length, parent_inode_number):
+    def read(self, inode_number, offset, length, parent_inode_number, delay_sec):
         inode = self.INODE_NUMBER_TO_INODE(inode_number)
         parent_inode = self.INODE_NUMBER_TO_INODE(parent_inode_number)
 
@@ -160,7 +160,7 @@ class InodeNumberLayer():
         if inode.type != 0 or parent_inode.type != 1:
             return -1
             
-        read_res = interface.read(inode, offset, length)
+        read_res = interface.read(inode, offset, length, delay_sec)
         # an error occured if the read_res was -1
         if (read_res == -1): return -1
 
