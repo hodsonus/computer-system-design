@@ -119,7 +119,7 @@ class client_stub():
             traceback.print_exc()
 
     def _update_data(self, data_server_number, local_block_number, block_data, delay_sec):
-        print("Writing data to server (" + str(data_server_number) + ").")
+        print("Writing data to server (" + str(data_server_number) + ")...")
         sleep(delay_sec)
         self.proxy[data_server_number].update_data_block(\
             pickle.dumps(local_block_number), pickle.dumps(block_data))
@@ -132,7 +132,7 @@ class client_stub():
         for i in range(len(block_data)):
             new_parity_value[i] = chr(ord(new_parity_value[i]) ^ ord(block_data[i]))
         
-        print("Writing parity to server (" + str(parity_server_number) + ").")
+        print("Writing parity to server (" + str(parity_server_number) + ")...")
         sleep(delay_sec)
         self.proxy[parity_server_number].update_data_block(\
             pickle.dumps(local_block_number), pickle.dumps(new_parity_value))
@@ -232,7 +232,8 @@ class client_stub():
             except Exception: pass
         self.num_servers = len(self.proxy)
 
-        print("Failed to connect to " + str(num_servers - self.num_servers) + " servers.")
+        diff = num_servers - self.num_servers
+        if diff > 0: print("Failed to connect to " + str(diff) + " servers.")
         if self.num_servers < 4:
             print("Insufficient servers connected to run client - terminating program.")
             quit()
