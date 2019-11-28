@@ -1,5 +1,5 @@
 # SKELETON CODE FOR CLIENT STUB HW4
-import xmlrpclib, config, pickle, sys, traceback
+import xmlrpclib, config, pickle, sys, traceback, random
 from time import sleep
 
 class client_stub():
@@ -12,16 +12,16 @@ class client_stub():
     def inode_number_to_inode(self, inode_number):
         inode_number = pickle.dumps(inode_number)
         try: # try server 0 for inode data
-            respVal = self.proxy[0].inode_number_to_inode(inode_number)
+            respVal = self.proxy[random.randint(0, len(self.proxy)-1)].inode_number_to_inode(inode_number)
             inode, state = pickle.loads(respVal)
-            if state == False: raise Exception()
+            #if state == False: raise Exception() # expect inode table to never be corrupted
         except Exception:
             try: # try server 1 for inode data
-                respVal = self.proxy[1].inode_number_to_inode(inode_number)
+                respVal = self.proxy[random.randint(0, len(self.proxy)-1)].inode_number_to_inode(inode_number)
                 inode, state = pickle.loads(respVal)
-                if state == False: raise Exception()
-            except:
-                print("Server error [inode_number_to_inode] - terminating program.") # s in servers #0 and #1
+                #if state == False: raise Exception() # expect inode table to never be corrupted
+            except: # at least two servers are down
+                print("Server error [inode_number_to_inode] - terminating program.")
                 traceback.print_exc()
                 quit()
         return inode

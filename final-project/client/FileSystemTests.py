@@ -13,7 +13,7 @@ def happy_path():
     my_object.create("/A/1.txt")
     '''as 1.txt is already created now, we can write to it.'''
     my_object.write("/A/1.txt", "POCSD", offset)
-    my_object.read("/A/1.txt", offset, len("POCSD"))
+    my_object.read("/A/1.txt", offset, len("POCSD"), 0)
     my_object.mv("/A/1.txt", "/B/1.txt")
     my_object.rm("/B/1.txt")
     my_object.rm("/B")
@@ -45,16 +45,16 @@ def test_case_2():
     my_object.create("/A/B/1.txt")
     my_object.write("/A/B/1.txt", message2*500)
 
-    my_object.read("/A/2.txt")
-    my_object.read("/A/B/1.txt")
-    my_object.read("/A/B/1.txt", len(message2)*499)
+    my_object.read("/A/2.txt", 0, -1, 0)
+    my_object.read("/A/B/1.txt", 0, -1, 0)
+    my_object.read("/A/B/1.txt", len(message2)*499, -1, 0)
 
     my_object.mkdir("/A/B/C")
     my_object.mv("/A/B/1.txt", "/A/B/C/3.txt")
-    my_object.read("/A/B/C/3.txt")
+    my_object.read("/A/B/C/3.txt", 0, -1, 0)
 
     # should fail
-    my_object.read("/A/B/1.txt")
+    my_object.read("/A/B/1.txt", 0, -1, 0)
     
     return my_object
 
@@ -116,7 +116,7 @@ def test_case_4():
     
     my_object.mv("/A/B/test.txt", "/A/test.txt")
 
-    my_object.read("/A/test.txt")
+    my_object.read("/A/test.txt", 0, -1, 0)
 
 def test_case_5():
     my_object = FileSystemOperations()
@@ -125,7 +125,7 @@ def test_case_5():
     my_object.create("/A/test.txt")
     messageA = "A"*500
     my_object.write("/A/test.txt", messageA)
-    my_object.read("/A/test.txt")
+    my_object.read("/A/test.txt", 0, -1, 0)
 
 def test_case_6(my_object):
     print('case 6')
@@ -138,7 +138,7 @@ def test_case_6(my_object):
             msg = chr(ord("a")+i)*config.BLOCK_SIZE*j
             my_object.create(name)
             my_object.write(name, msg)
-            assert(msg == my_object.read(name))
+            assert(msg == my_object.read(name, 0, -1, 0))
         for i in range(12):
             name = '/dir'*(i)+'/file'
             my_object.rm(name)
@@ -150,7 +150,7 @@ def test_case_7(my_object):
         msg = chr(ord("a")+i)*config.BLOCK_SIZE*(1+(i%2))
         my_object.create(name)
         my_object.write(name, msg)
-        assert(msg == my_object.read(name))
+        assert(msg == my_object.read(name, 0, -1, 0))
     for i in range(8):
         name = '/dir'*(i)+'/file'
         my_object.rm(name)
@@ -162,7 +162,7 @@ def test_case_8(my_object):
         msg = chr(ord("a")+i)*config.BLOCK_SIZE*(1+((i+1)%2))
         my_object.create(name)
         my_object.write(name, msg)
-        assert(msg == my_object.read(name))
+        assert(msg == my_object.read(name, 0, -1, 0))
     for i in range(8):
         name = '/dir'*(i)+'/file'
         my_object.rm(name)
