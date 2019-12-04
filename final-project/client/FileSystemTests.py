@@ -1,6 +1,6 @@
 import FileSystem, sys
 from FileSystem import FileSystemOperations
-import time, config
+import time, config, traceback
 
 
 def happy_path():
@@ -128,59 +128,60 @@ def test_case_5():
     my_object.read("/A/test.txt", 0, -1, 0)
 
 def test_case_6(my_object):
-    print('case 6')
+    print('test case set 1')
     for i in range(12):
-        name = '/dir'*(i+1)
+        name = '/d'*(i+1)
         my_object.mkdir(name)
     for j in range(1, 8):
         for i in range(12):
-            name = '/dir'*(i)+'/file'
+            name = '/d'*(i)+'/f'
             msg = chr(ord("a")+i)*config.BLOCK_SIZE*j
             my_object.create(name)
             my_object.write(name, msg)
             assert(msg == my_object.read(name, 0, -1, 0))
         for i in range(12):
-            name = '/dir'*(i)+'/file'
+            name = '/d'*(i)+'/f'
             my_object.rm(name)
 
 def test_case_7(my_object):
-    print('case 7')
+    print('test case set 2')
     for i in range(8):
-        name = '/dir'*(i)+'/file'
+        name = '/d'*(i)+'/f'
         msg = chr(ord("a")+i)*config.BLOCK_SIZE*(1+(i%2))
         my_object.create(name)
         my_object.write(name, msg)
         assert(msg == my_object.read(name, 0, -1, 0))
     for i in range(8):
-        name = '/dir'*(i)+'/file'
+        name = '/d'*(i)+'/f'
         my_object.rm(name)
 
 def test_case_8(my_object):
-    print('case 8')
+    print('test case set 3')
     for i in range(8):
-        name = '/dir'*(i)+'/file'
+        name = '/d'*(i)+'/f'
         msg = chr(ord("a")+i)*config.BLOCK_SIZE*(1+((i+1)%2))
         my_object.create(name)
         my_object.write(name, msg)
         assert(msg == my_object.read(name, 0, -1, 0))
     for i in range(8):
-        name = '/dir'*(i)+'/file'
+        name = '/d'*(i)+'/f'
         my_object.rm(name)
-
-def test_case_9(my_object):
-    print('case 9')
-    my_object.create('/file')
-    my_object.mv('/file', '/dir/file')
-    my_object.rm('/dir/file')
 
 if __name__ == '__main__':
     FileSystem.Initialize_My_FileSystem(4)
     if (len(sys.argv) < 2):
         my_object = FileSystemOperations()
+        print('Delaying 5s to allow termination of a server.')
+        print('Server may also be terminated during execution.')
+        time.sleep(5)
         test_case_6(my_object)
         test_case_7(my_object)
         test_case_8(my_object)
-        test_case_9(my_object)
+        my_object.create('/f')
+        my_object.mv('/f', '/d/f')
+        my_object.rm('/d/f')
+        print('\nComplete.')
+        print('Scroll up server logs to verify uniform GET/SET load counters.')
         exit(0)
     
     test_case = sys.argv[1]

@@ -2,7 +2,7 @@
 THIS IS A MEMORY MODULE ON THE SREVER WHICH ACTS LIKE MEMORY OF FILE SYSTEM. ALL THE OPERATIONS REGARDING THE FILE SYSTEM OPERATES IN 
 THIS MODULE. THE MODULE HAS POINTER TO DISK AND HAS EXACT SAME LAYOUT AS UNIX TYPE FILE SYSTEM.
 '''  
-import config, DiskLayout
+import config, DiskLayout, traceback, hashlib, random, sys
 
 
 #POINTER TO DISK
@@ -51,7 +51,6 @@ class Operations():
             return sblock.ADDR_DATA_BLOCKS[block_number - sblock.DATA_BLOCKS_OFFSET].block
         return -1
 
-
     #RETURNS THE BLOCK NUMBER OF AVAIALBLE DATA BLOCK  
     def get_valid_data_block(self):			
         for i in range(0, sblock.TOTAL_NO_OF_BLOCKS):
@@ -65,11 +64,24 @@ class Operations():
     def free_data_block(self, block_number):  	
         sblock.ADDR_BITMAP_BLOCKS[block_number / sblock.BLOCK_SIZE].block[block_number % sblock.BLOCK_SIZE] = 0
         b = sblock.ADDR_DATA_BLOCKS[block_number - sblock.DATA_BLOCKS_OFFSET].block
-        for i in range(0, sblock.BLOCK_SIZE): b[i] = '\0'
+        for i in range(0, config.BLOCK_SIZE): b[i] = '\0'
+        h = list(''.join(hashlib.md5(''.join(["\0"]*config.BLOCK_SIZE)).digest()))
+        for i in range(16): b[config.BLOCK_SIZE+i] = h[i]
 
+    def corrupt_data_block(self, block_number):
+        data = ''.join(self.get_data_block(block_number))
+        char_i = 0#random.randint(0, len(data))
+        bit_i = 0#random.randint(0, 8)
+        curr_bit = (ord(data[char_i]) >> bit_i) & 1
+        if curr_bit == 0: corr_char = chr(ord(data[char_i]) | (1 << bit_i))
+        if curr_bit == 1: corr_char = chr(ord(data[char_i]) & (0 << bit_i))
+        corr_data = data[:char_i] + corr_char + data[char_i+1:]
+        retVal = self.update_data_block(block_number, corr_data)
+        print(''.join(self.get_data_block(block_number))[:8])
+        return retVal
 
     #WRITES TO THE DATA BLOCK
-    def update_data_block(self, block_number, block_data):		
+    def update_data_block(self, block_number, block_data):
         b = sblock.ADDR_DATA_BLOCKS[block_number - sblock.DATA_BLOCKS_OFFSET].block
         for i in range(0, len(block_data)): b[i] = block_data[i]
         #print("Memory: Data Copy Completes")

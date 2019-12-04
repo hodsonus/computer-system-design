@@ -1,4 +1,4 @@
-import xmlrpclib, config, pickle, os, sys, subprocess, time
+import xmlrpclib, config, pickle, os, sys, subprocess, time, traceback
 
 numServers = int(sys.argv[1])
 basePortNum = 8000
@@ -13,13 +13,20 @@ for i in range(numServers) :
     time.sleep(1)
 
 while True:
-    serverNum = int(raw_input("Select Server to Corrupt..."))
-    try :
+    try:
+        serverNum = int(raw_input("Select Server to Corrupt: "))
         if 0 <= serverNum and serverNum < numServers:
-            retVal = proxy[serverNum].corruptData()
-            print(serverNum)
-            print(pickle.loads(retVal))
+            modeNum = raw_input("Select mode [1] 0th blk [2] random blk: ")
+            if modeNum == '1' or modeNum == '2':
+                try:
+                    retVal = proxy[serverNum].corruptData(pickle.dumps(modeNum))
+                    print(pickle.loads(retVal))
+                except: print("server down, cannot corrupt")
+            else:
+                print('option number out of bounds')
+                continue
         else:
             print('server number out of bounds')
     except Exception as err :
+        traceback.print_exc()
         print('connection error')

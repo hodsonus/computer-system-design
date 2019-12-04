@@ -11,57 +11,51 @@ class client_stub():
 
     def inode_number_to_inode(self, inode_number):
         inode_number = pickle.dumps(inode_number)
+        rand1 = random.randint(0, len(self.proxy)-1)
+        rand2 = random.randint(0, len(self.proxy)-1)
+        while rand1 == rand2:
+            rand2 = random.randint(0, len(self.proxy)-1)
         try: # try server 0 for inode data
-            respVal = self.proxy[random.randint(0, len(self.proxy)-1)].inode_number_to_inode(inode_number)
-            inode, state = pickle.loads(respVal)
-            #if state == False: raise Exception() # expect inode table to never be corrupted
+            respVal = self.proxy[rand1].inode_number_to_inode(inode_number)
+            inode = pickle.loads(respVal) # inode table never corrupted
         except Exception:
             try: # try server 1 for inode data
-                respVal = self.proxy[random.randint(0, len(self.proxy)-1)].inode_number_to_inode(inode_number)
-                inode, state = pickle.loads(respVal)
-                #if state == False: raise Exception() # expect inode table to never be corrupted
+                respVal = self.proxy[rand2].inode_number_to_inode(inode_number)
+                inode = pickle.loads(respVal) # inode table never corrupted
             except: # at least two servers are down
-                print("Server error [inode_number_to_inode] - terminating program.")
-                traceback.print_exc()
+                print("Server error [inode_number_to_inode]. Two or more down, terminating program.")
+                #traceback.print_exc()
                 quit()
         return inode
 
     def get_data_block(self, virtual_block_number, delay_sec):
         data_server_number = virtual_block_number & 0b1111
         local_block_number = virtual_block_number >> 4
-        respVal = 0
         try: # direct read from target server
-            print("Reading data from the data server (" + str(data_server_number) + ").")
+            print("Reading data from server (" + str(data_server_number) + ").")
             sleep(delay_sec)
-            respVal, state = pickle.loads(\
-                self.proxy[data_server_number].get_data_block(\
-                    pickle.dumps(local_block_number)))
-            if (state == False): raise Exception()
-        except: # target server down or corrupt
+            data1, err1 = pickle.loads(self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
+            if err1: raise Exception()
+        except: # target server down/corrupt
             try: # read all other servers same local block
-                print("Target server down, reconstructing data from other servers.")
+                print("Data server down/corrupt, reconstructing data from other servers.")
                 sibling_blocks = []
                 for i in range(self.num_servers):
                     if i == data_server_number: continue
-                    print("Reading data from the data server (" + str(i) + ").")
-                    data, state = pickle.loads(\
-                        self.proxy[i].get_data_block(\
-                            pickle.dumps(local_block_number)))
-                    if (state == False): raise Exception()
-                    sibling_blocks.append(data)
-
-                respVal = list(sibling_blocks[0])
+                    print("Reading data from server (" + str(i) + ").")
+                    data2, err2 = pickle.loads(self.proxy[i].get_data_block(pickle.dumps(local_block_number)))
+                    if err2: raise Exception()
+                    sibling_blocks.append(data2)
+                data1 = list(sibling_blocks[0])
                 for sibling_index in range(1,len(sibling_blocks)):
                     sibling = sibling_blocks[sibling_index]
                     for i in range(len(sibling)):
-                        respVal[i] = chr(ord(respVal[i]) ^ ord(sibling[i]))    
-
-                # TODO: write to fix corrupted value and correct state?
-            except: # multiple servers down or corrupt
-                print("Server Error [get_data_block] - terminating program.")
-                traceback.print_exc()
+                        data1[i] = chr(ord(data1[i]) ^ ord(sibling[i]))
+            except: # multiple servers down/corrupt
+                print("Server Error [get_data_block]. Two or more down/corrupt, terminating program.")
+                #traceback.print_exc()
                 quit()
-        return respVal
+        return data1
 
     def get_valid_data_block(self):
         # returns a valid virtual block number
@@ -72,10 +66,7 @@ class client_stub():
             v_candidate_blocks = []
             server_down = False
             for server_num in range(self.num_servers):
-                try:
-                    local_candidate, state = pickle.loads(self.proxy[server_num].get_valid_data_block())
-                    if state == False:
-                        raise Exception()
+                try: local_candidate = pickle.loads(self.proxy[server_num].get_valid_data_block())
                 except: 
                     if not server_down:
                         server_down = True
@@ -101,8 +92,8 @@ class client_stub():
                     else: raise Exception()
 
         except Exception:
-            print("Server Error [get_valid_data_block] - terminating program.")
-            traceback.print_exc()
+            print("Server Error [get_valid_data_block]. Two or more down/corrupt, terminating program.")
+            #traceback.print_exc()
             quit()
 
         return v_selected
@@ -114,9 +105,7 @@ class client_stub():
         try:
             self.proxy[server_number].free_data_block(\
                             pickle.dumps(local_block_number))
-        except Exception:
-            print("Error in server #" + str(server_number) + " [free_data_block].")
-            traceback.print_exc()
+        except Exception: pass
 
     def _update_data(self, data_server_number, local_block_number, block_data, delay_sec):
         print("Writing data to server (" + str(data_server_number) + ")...")
@@ -144,23 +133,21 @@ class client_stub():
 
         data_down, parity_down = False, False
         try:
-            old_parity_value, state = pickle.loads(self.proxy[parity_server_number].get_data_block(pickle.dumps(local_block_number)))
-            if state == False:
-                raise Exception()
+            old_parity_value, p_err = pickle.loads(self.proxy[parity_server_number].get_data_block(pickle.dumps(local_block_number)))
+            if p_err: raise Exception()
         except:
             print("Parity server (" + str(parity_server_number) + ") is down.")
             parity_down = True
         try:
-            old_data_value, state = pickle.loads(self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
-            if state == False:
-                raise Exception()
+            old_data_value, d_err = pickle.loads(self.proxy[data_server_number].get_data_block(pickle.dumps(local_block_number)))
+            if d_err: raise Exception()
         except:
             print("Data server (" + str(data_server_number) + ") is down.")
             data_down = True
 
         if parity_down and data_down:
-            print("Multiple server errors [update_data_block], terminating.")
-            traceback.print_exc()
+            print("Server error [update_data_block]. Two or more down, terminating program.")
+            #traceback.print_exc()
             quit()
 
         if parity_down and not data_down:
@@ -168,8 +155,8 @@ class client_stub():
             print("Skipping parity update to server (" + str(parity_server_number) + ").")
             try: self._update_data(data_server_number, local_block_number, block_data, delay_sec)
             except:
-                print("Multiple server errors [update_data_block], terminating.")
-                traceback.print_exc()
+                print("Server error [update_data_block]. Two or more down, terminating program.")
+                #traceback.print_exc()
                 quit()
 
         if not parity_down and data_down:
@@ -180,14 +167,15 @@ class client_stub():
             try: self._update_parity(parity_server_number, local_block_number, old_parity_value, \
                      old_data_value, block_data, delay_sec)
             except:
-                print("Multiple server errors [update_data_block], terminating.")
-                traceback.print_exc()
+                print("Server error [update_data_block]. Two or more down, terminating program.")
+                #traceback.print_exc()
                 quit()
 
         if not parity_down and not data_down:
             # update data and parity
             try: self._update_data(data_server_number, local_block_number, block_data, delay_sec)
             except:
+                #traceback.print_exc()
                 print("Data server (" + str(data_server_number) + ") is down.")
                 data_down = True
             try: self._update_parity(parity_server_number, local_block_number, old_parity_value, \
@@ -197,8 +185,8 @@ class client_stub():
                 parity_down = True
             
             if (parity_down and data_down):
-                print("Multiple server errors [update_data_block], terminating.")
-                traceback.print_exc()
+                print("Server error [update_data_block]. Two or more down, terminating program.")
+                #traceback.print_exc()
                 quit()
 
         return
@@ -212,11 +200,13 @@ class client_stub():
             for s in range(self.num_servers):
                 try: self.proxy[s].update_inode_table(inode, inode_number)
                 except:
-                    if not server_down: server_down = True
+                    if not server_down:
+                        server_down = True
+                        continue
                     else: raise Exception()
         except Exception:
-            print("Server Error [update_inode_table] - terminating program.")
-            traceback.print_exc()
+            print("Server Error [update_inode_table]. Two or more down, terminating program.")
+            #traceback.print_exc()
             quit()
 
     # example provided for initialize

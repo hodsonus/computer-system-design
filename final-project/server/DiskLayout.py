@@ -2,7 +2,7 @@
 THIS MODULE CONSISTS OF DEFINITIONS OF SUPERBLOCK AND ITS ATTRIBUTES. IT ALSO INCLUDES DEFINITIONS OF BITMAP BLOCKS, INODE BLOCKS
 AND DATA BLOCKS
 '''
-import config
+import config, hashlib
 
 class SuperBlock():
     def __init__(self):
@@ -28,4 +28,5 @@ class Inode_Block():
 
 class Data_Block():
     def __init__(self, BLOCK_SIZE):                                 
-        self.block = ["\0"]*BLOCK_SIZE                                          #EMPTY BLOCK WILL CONTAIN NULL VALUES INITIALLY
+        self.block = ["\0"]*BLOCK_SIZE #EMPTY BLOCK WILL CONTAIN NULL VALUES INITIALLY
+        self.block += list(''.join(hashlib.md5(''.join(["\0"]*BLOCK_SIZE)).digest()))
