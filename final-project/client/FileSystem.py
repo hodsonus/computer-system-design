@@ -1,7 +1,7 @@
 import MemoryInterface, AbsolutePathNameLayer, sys, FileSystemUI
 
-def Initialize_My_FileSystem(num_servers):
-    MemoryInterface.Initialize_My_FileSystem(num_servers)
+def Initialize_My_FileSystem(num_servers, raid_mode):
+    MemoryInterface.Initialize_My_FileSystem(num_servers, raid_mode)
     AbsolutePathNameLayer.AbsolutePathNameLayer().new_entry('/', 1)
 
 #HANDLE TO ABSOLUTE PATH NAME LAYER
@@ -40,12 +40,21 @@ class FileSystemOperations():
         interface.mv(old_path, new_path)
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Must (only) specify number of servers.")
+    if len(sys.argv) != 3:
+        print("Must (only) specify number of servers and raid mode.")
         quit()
-    num_servers = int(sys.argv[1])
-    if num_servers < 4 or num_servers > 16:
+    
+    try:
+        num_servers = int(sys.argv[1])
+        if num_servers < 4 or num_servers > 16: raise Exception()
+    except:
         print("Must use between 4 and 16 servers - terminating program.")
         quit()
-    Initialize_My_FileSystem(num_servers)
+    
+    raid_mode = sys.argv[2]
+    if raid_mode != '1' and raid_mode != '5':
+        print("Must use raid mode 1 or 5 - terminating program.")
+        quit()
+
+    Initialize_My_FileSystem(num_servers, raid_mode)
     FileSystemUI.file_system_repl()

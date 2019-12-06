@@ -100,12 +100,21 @@ def file_system_repl():
             continue
         
 if __name__ == "__main__":
-    print("Hello, this is a demo for our RAID 5 file system. We are able to tolerate a fail-stop of one server/disk and recover all data.")
+    print("Hello, this is a demo for our RAID 5 file system. We are able to tolerate a fail-stop of one server/disk and recover all data.\n")
+    
     print("Please input the number of servers, between 4 and 16, that you would like to test this with.")
     print("Ensure that this number of servers reflects the number of servers instantiated with backChannel.py")
     num_servers = int(input())
     while num_servers < 4 or num_servers > 16:
         print('Please enter a number of servers between 4 and 16.')
         num_servers = int(input())
-    FileSystem.Initialize_My_FileSystem(num_servers)
+    
+    print("Please input the raid mode, 1 or 5, that you would like to test this with.")
+    print("Ensure that this raid mode reflects the raid mode instantiated with backChannel.py")
+    raid_mode = input()
+    while raid_mode != '1' and raid_mode != '5':
+        print('Please enter a raid mode 1 or 5.')
+        raid_mode = input()
+    
+    FileSystem.Initialize_My_FileSystem(num_servers, raid_mode)
     file_system_repl()

@@ -8,8 +8,62 @@ class client_stub():
         self.proxy = []
         self.portNum = 8000
         self.num_servers = -1
+        self.raid_mode = '5'
+
+    def Initialize(self, num_servers, raid_mode):
+        if num_servers < 4 or num_servers > 16:
+            print("Must use between 4 and 16 servers - terminating program.")
+            quit()
+        
+        if raid_mode != '1' and raid_mode != '5':
+            print('Invalid raid mode - terminating program.')
+            quit()
+        
+        self.raid_mode = raid_mode
+
+        for i in range(num_servers):
+            try:
+                self.proxy.append(xmlrpclib.ServerProxy("http://localhost:" + str(self.portNum + i) + "/"))
+                self.proxy[-1].Initialize()
+            except Exception: pass
+        self.num_servers = len(self.proxy)
+
+        diff = num_servers - self.num_servers
+        if diff > 0: print("Failed to connect to " + str(diff) + " server(s).")
+        if self.num_servers < 4 or self.num_servers < num_servers-1:
+            print("Insufficient servers for " + str(num_servers) + "-server configuratuion - terminating program.")
+            quit()
+        print("Running client with " + str(self.num_servers) + " servers up.")
 
     def inode_number_to_inode(self, inode_number):
+        if self.raid_mode == '1': return self.raid1_inode_number_to_inode(inode_number)
+        if self.raid_mode == '5': return self.raid5_inode_number_to_inode(inode_number)
+
+    def get_data_block(self, virtual_block_number, delay_sec):
+        if self.raid_mode == '1': return self.raid1_get_data_block(virtual_block_number, delay_sec)
+        if self.raid_mode == '5': return self.raid5_get_data_block(virtual_block_number, delay_sec)
+
+    def get_valid_data_block(self):
+        if self.raid_mode == '1': return self.raid1_get_valid_data_block()
+        if self.raid_mode == '5': return self.raid5_get_valid_data_block()
+
+    def free_data_block(self, virtual_block_number):
+        if self.raid_mode == '1': return self.raid1_free_data_block(virtual_block_number)
+        if self.raid_mode == '5': return self.raid5_free_data_block(virtual_block_number)
+
+    def update_data_block(self, virtual_block_number, block_data, delay_sec):
+        if self.raid_mode == '1': return self.raid1_update_data_block(virtual_block_number, block_data, delay_sec)
+        if self.raid_mode == '5': return self.raid5_update_data_block(virtual_block_number, block_data, delay_sec)
+
+    def update_inode_table(self, inode, inode_number):
+        if self.raid_mode == '1': return self.raid1_update_inode_table(inode, inode_number)
+        if self.raid_mode == '5': return self.raid5_update_inode_table(inode, inode_number)
+
+    
+    ### RAID 5 ###
+    
+    
+    def raid5_inode_number_to_inode(self, inode_number):
         inode_number = pickle.dumps(inode_number)
         rand1 = random.randint(0, len(self.proxy)-1)
         rand2 = random.randint(0, len(self.proxy)-1)
@@ -28,7 +82,7 @@ class client_stub():
                 quit()
         return inode
 
-    def get_data_block(self, virtual_block_number, delay_sec):
+    def raid5_get_data_block(self, virtual_block_number, delay_sec):
         data_server_number = virtual_block_number & 0b1111
         local_block_number = virtual_block_number >> 4
         try: # direct read from target server
@@ -57,7 +111,7 @@ class client_stub():
                 quit()
         return data1
 
-    def get_valid_data_block(self):
+    def raid5_get_valid_data_block(self):
         # returns a valid virtual block number
         # make sure we never return a parity block here, and for a row number,
         # ensure that the parity of that row is allocated as well
@@ -98,7 +152,7 @@ class client_stub():
 
         return v_selected
 
-    def free_data_block(self, virtual_block_number):
+    def raid5_free_data_block(self, virtual_block_number):
         if virtual_block_number == -1: return
         local_block_number = virtual_block_number >> 4
         server_number = virtual_block_number & 0b1111
@@ -126,7 +180,7 @@ class client_stub():
         self.proxy[parity_server_number].update_data_block(\
             pickle.dumps(local_block_number), pickle.dumps(new_parity_value))
 
-    def update_data_block(self, virtual_block_number, block_data, delay_sec):
+    def raid5_update_data_block(self, virtual_block_number, block_data, delay_sec):
         local_block_number = virtual_block_number >> 4
         data_server_number = virtual_block_number & 0b1111
         parity_server_number = local_block_number % self.num_servers
@@ -191,7 +245,7 @@ class client_stub():
 
         return
 
-    def update_inode_table(self, inode, inode_number):
+    def raid5_update_inode_table(self, inode, inode_number):
         inode = pickle.dumps(inode)
         inode_number = pickle.dumps(inode_number)
         server_down = False
@@ -209,22 +263,97 @@ class client_stub():
             #traceback.print_exc()
             quit()
 
-    # example provided for initialize
-    def Initialize(self, num_servers):
-        if num_servers < 4 or num_servers > 16:
-            print("Must use between 4 and 16 servers - terminating program.")
-            quit()
-        
-        for i in range(num_servers):
-            try:
-                self.proxy.append(xmlrpclib.ServerProxy("http://localhost:" + str(self.portNum + i) + "/"))
-                self.proxy[i].Initialize()
-            except Exception: pass
-        self.num_servers = len(self.proxy)
 
-        diff = num_servers - self.num_servers
-        if diff > 0: print("Failed to connect to " + str(diff) + " servers.")
-        if self.num_servers < 4:
-            print("Insufficient servers connected to run client - terminating program.")
+    ### RAID 1 ###
+    
+    
+    def raid1_inode_number_to_inode(self, inode_number):
+        inode_number = pickle.dumps(inode_number)
+        rand = random.randint(0, len(self.proxy)-1)
+        for i in range(self.num_servers):
+            try: # try server 0 for inode data
+                inode = self.proxy[(rand+i)%self.num_servers].inode_number_to_inode(inode_number)
+                return pickle.loads(inode) # inode table never corrupted
+            except Exception: pass
+        print("Server error [inode_number_to_inode]. No server reachable, terminating program.")
+        #traceback.print_exc()
+        quit()
+
+    def raid1_get_data_block(self, virtual_block_number, delay_sec):
+        virtual_block_number = pickle.dumps(virtual_block_number)
+        rand = random.randint(0, len(self.proxy)-1)
+        for i in range(self.num_servers):
+            try:
+                print("Reading data from server (" + str((rand+i)%self.num_servers) + ").")
+                sleep(delay_sec)
+                s = self.proxy[(rand+i)%self.num_servers]
+                ret = s.get_data_block(virtual_block_number)
+                data, err = pickle.loads(ret)
+                if err == False: return data
+                if data == 'ErrCode1':
+                    print('Invalid data access, terminating program.')
+                    quit()
+                if data == 'ErrCode2': print('Data corrupted, trying another server.')
+            except Exception: print('Data not reachable, trying another server.')
+        print("Server error [get_data_block]. No server reachable, terminating program.")
+        #traceback.print_exc()
+        quit()
+
+    def raid1_get_valid_data_block(self):
+        blk = -1
+        for i in range(self.num_servers):
+            try:
+                tmp_blk = pickle.loads(self.proxy[i].get_valid_data_block())
+                if blk == -1: blk = tmp_blk
+                elif tmp_blk != blk:
+                    print("Server error [get_valid_data_block]. Block state misaligned, terminating program.")
+                    #traceback.print_exc()
+                    quit()
+            except Exception: pass
+        if blk != -1: return blk
+        print("Server error [get_valid_data_block]. No server reachable, terminating program.")
+        #traceback.print_exc()
+        quit()
+
+    def raid1_free_data_block(self, virtual_block_number):
+        if virtual_block_number == -1: return
+        at_least_one = False
+        for i in range(self.num_servers):
+            try:
+                self.proxy[i].free_data_block(pickle.dumps(virtual_block_number))
+                at_least_one = True
+            except Exception: pass
+        if not at_least_one:
+            print("Server error [free_data_block]. No server reachable, terminating program.")
+            #traceback.print_exc()
             quit()
-        print("Running client with " + str(self.num_servers) + " servers up.")
+
+    def raid1_update_data_block(self, virtual_block_number, block_data, delay_sec):
+        virtual_block_number = pickle.dumps(virtual_block_number)
+        block_data = pickle.dumps(block_data)
+        print("Writing data to all servers...")
+        sleep(delay_sec)
+        at_least_one = False
+        for i in range(self.num_servers):
+            try:
+                self.proxy[i].update_data_block(virtual_block_number, block_data)
+                at_least_one = True
+            except Exception: pass
+        if not at_least_one:
+            print("Server error [update_data_block]. No server reachable, terminating program.")
+            #traceback.print_exc()
+            quit()
+
+    def raid1_update_inode_table(self, inode, inode_number):
+        inode = pickle.dumps(inode)
+        inode_number = pickle.dumps(inode_number)
+        at_least_one = False
+        for i in range(self.num_servers):
+            try:
+                self.proxy[i].update_inode_table(inode, inode_number)
+                at_least_one = True
+            except Exception: pass
+        if not at_least_one:
+            print("Server error [update_inode_table]. No server reachable, terminating program.")
+            #traceback.print_exc()
+            quit()

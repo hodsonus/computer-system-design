@@ -70,7 +70,7 @@ def corruptData(mode):
         filesystem.free_data_block(max_b)
         b = random.randint(BASE_DATA_BLOCK, max_b-1)
         filesystem.corrupt_data_block(b)
-        retVal = 'Data corrupted in server ' + str(portNumber) + ' block ' + str(b)
+        retVal = 'Data corrupted in server on port ' + str(portNumber) + ' block ' + str(b)
     print(retVal)
     return pickle.dumps(retVal)
 

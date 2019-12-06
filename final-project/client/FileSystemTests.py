@@ -168,8 +168,18 @@ def test_case_8(my_object):
         my_object.rm(name)
 
 if __name__ == '__main__':
-    FileSystem.Initialize_My_FileSystem(4)
-    if (len(sys.argv) < 2):
+
+    if len(sys.argv) != 2 and len(sys.argv) != 3:
+        print("Must (only) specify raid mode.")
+        quit()
+    
+    raid_mode = sys.argv[1]
+    if raid_mode != '1' and raid_mode != '5':
+        print("Must use raid mode 1 or 5 - terminating program.")
+        quit()
+
+    FileSystem.Initialize_My_FileSystem(4, raid_mode)
+    if (len(sys.argv) < 3):
         my_object = FileSystemOperations()
         print('Delaying 5s to allow termination of a server.')
         print('Server may also be terminated during execution.')
@@ -180,11 +190,11 @@ if __name__ == '__main__':
         my_object.create('/f')
         my_object.mv('/f', '/d/f')
         my_object.rm('/d/f')
-        print('\nComplete.')
-        print('Scroll up server logs to verify uniform GET/SET load counters.')
+        print('\nTests Complete.')
+        print('Scroll up server logs to observe GET/SET load counters.')
         exit(0)
     
-    test_case = sys.argv[1]
+    test_case = sys.argv[2]
 
     if (test_case == "happy_path"): happy_path()
     elif (test_case == "1"): test_case_1()
