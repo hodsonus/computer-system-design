@@ -1,5 +1,6 @@
 # SKELETON CODE FOR CLIENT STUB HW4
-import xmlrpclib, config, pickle, sys, traceback, random
+import config
+import xmlrpclib, pickle, sys, traceback, random
 from time import sleep
 
 class client_stub():
@@ -93,6 +94,7 @@ class client_stub():
         except: # target server down/corrupt
             try: # read all other servers same local block
                 print("Data server down/corrupt, reconstructing data from other servers.")
+                sleep(delay_sec)
                 sibling_blocks = []
                 for i in range(self.num_servers):
                     if i == data_server_number: continue

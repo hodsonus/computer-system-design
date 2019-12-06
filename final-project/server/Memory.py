@@ -2,8 +2,9 @@
 THIS IS A MEMORY MODULE ON THE SREVER WHICH ACTS LIKE MEMORY OF FILE SYSTEM. ALL THE OPERATIONS REGARDING THE FILE SYSTEM OPERATES IN 
 THIS MODULE. THE MODULE HAS POINTER TO DISK AND HAS EXACT SAME LAYOUT AS UNIX TYPE FILE SYSTEM.
 '''  
-import config, DiskLayout, traceback, hashlib, random, sys
 
+import config
+import DiskLayout, traceback, hashlib, random, sys
 
 #POINTER TO DISK
 sblock = DiskLayout.SuperBlock()			 
@@ -68,10 +69,10 @@ class Operations():
         h = list(''.join(hashlib.md5(''.join(["\0"]*config.BLOCK_SIZE)).digest()))
         for i in range(16): b[config.BLOCK_SIZE+i] = h[i]
 
-    def corrupt_data_block(self, block_number):
+    def corrupt_data_block(self, block_number, mode):
         data = ''.join(self.get_data_block(block_number))
-        char_i = 0#random.randint(0, len(data))
-        bit_i = 0#random.randint(0, 8)
+        char_i = 0 if mode == '0' else random.randint(0, len(data))
+        bit_i = 0 if mode == '0' else random.randint(0, 7)
         curr_bit = (ord(data[char_i]) >> bit_i) & 1
         if curr_bit == 0: corr_char = chr(ord(data[char_i]) | (1 << bit_i))
         if curr_bit == 1: corr_char = chr(ord(data[char_i]) & (0 << bit_i))

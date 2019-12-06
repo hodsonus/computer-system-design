@@ -1,5 +1,6 @@
 from __future__ import print_function
-import FileSystem, sys, time, config, traceback
+import config
+import FileSystem, sys, time, traceback
 
 def file_system_repl():
     fsop = FileSystem.FileSystemOperations()

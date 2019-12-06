@@ -1,7 +1,6 @@
-import FileSystem, sys
+import FileSystem, sys, time, traceback
 from FileSystem import FileSystemOperations
-import time, config, traceback
-
+import config
 
 def happy_path():
     start_time = time.time()
@@ -129,9 +128,6 @@ def test_case_5():
 
 def test_case_6(my_object):
     print('test case set 1')
-    for i in range(12):
-        name = '/d'*(i+1)
-        my_object.mkdir(name)
     for j in range(1, 8):
         for i in range(12):
             name = '/d'*(i)+'/f'
@@ -184,6 +180,9 @@ if __name__ == '__main__':
         print('Delaying 5s to allow termination of a server.')
         print('Server may also be terminated during execution.')
         time.sleep(5)
+        for i in range(12):
+            name = '/d'*(i+1)
+            my_object.mkdir(name)
         test_case_6(my_object)
         test_case_7(my_object)
         test_case_8(my_object)

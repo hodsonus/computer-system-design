@@ -1,4 +1,5 @@
-import xmlrpclib, time, Memory, pickle , InodeOps, config, DiskLayout, sys, hashlib, config, traceback, random
+import config
+import xmlrpclib, time, Memory, pickle , InodeOps, DiskLayout, sys, hashlib, config, traceback, random
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 global portNumber
@@ -60,16 +61,21 @@ def inode_number_to_inode(inode_number):
 def corruptData(mode):
     mode = pickle.loads(mode)
     retVal = 'Failed to corrupt server.'
-    if(mode == '1'):
+    if BASE_DATA_BLOCK == 0:
+        retVal = 'Client must Initialize() server before corruption.'
+    elif(mode == '0'):
         # 0th
-        filesystem.corrupt_data_block(BASE_DATA_BLOCK)
+        filesystem.corrupt_data_block(BASE_DATA_BLOCK, mode)
         retVal = 'Data corrupted in server ' + str(portNumber) + ' block ' + str(BASE_DATA_BLOCK)
-    if(mode == '2'):
+    elif(mode == '1'):
         # random
-        max_b = filesystem.get_valid_data_block()
-        filesystem.free_data_block(max_b)
-        b = random.randint(BASE_DATA_BLOCK, max_b-1)
-        filesystem.corrupt_data_block(b)
+        try:
+            max_b = filesystem.get_valid_data_block()
+            filesystem.free_data_block(max_b)
+            b = BASE_DATA_BLOCK if BASE_DATA_BLOCK >= max_b-1 \
+                else random.randint(BASE_DATA_BLOCK, max_b-1)
+            filesystem.corrupt_data_block(b, mode)
+        except: traceback.print_exc()
         retVal = 'Data corrupted in server on port ' + str(portNumber) + ' block ' + str(b)
     print(retVal)
     return pickle.dumps(retVal)

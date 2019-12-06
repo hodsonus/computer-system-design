@@ -2,7 +2,8 @@
 THIS MODULE ACTS AS A INODE NUMBER LAYER. NOT ONLY IT SHARES DATA WITH INODE LAYER, BUT ALSO IT CONNECTS WITH MEMORY INTERFACE FOR INODE TABLE 
 UPDATES. THE INODE TABLE AND INODE NUMBER IS UPDATED IN THE FILE SYSTEM USING THIS LAYER
 '''
-import InodeLayer, config, MemoryInterface, datetime, InodeOps, MemoryInterface
+import config
+import InodeLayer, MemoryInterface, datetime, InodeOps, MemoryInterface
 
 #HANDLE OF INODE LAYER
 interface = InodeLayer.InodeLayer()

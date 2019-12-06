@@ -2,7 +2,9 @@
 THIS MODULE CONSISTS OF DEFINITIONS OF SUPERBLOCK AND ITS ATTRIBUTES. IT ALSO INCLUDES DEFINITIONS OF BITMAP BLOCKS, INODE BLOCKS
 AND DATA BLOCKS
 '''
-import config, hashlib
+
+import config
+import hashlib
 
 class SuperBlock():
     def __init__(self):
