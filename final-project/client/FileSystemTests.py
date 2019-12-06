@@ -190,7 +190,7 @@ if __name__ == '__main__':
         my_object.mv('/f', '/d/f')
         my_object.rm('/d/f')
         print('\nTests Complete.')
-        print('Scroll up server logs to observe GET/SET load counters.')
+        print('Scroll up for load distribution counter vectors.')
         exit(0)
     
     test_case = sys.argv[2]

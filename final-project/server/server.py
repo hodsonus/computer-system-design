@@ -4,8 +4,6 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 global portNumber
 filesystem = Memory.Operations()
-RAID_REQ_COUNT_GET = 0
-RAID_REQ_COUNT_SET = 0
 BASE_DATA_BLOCK = 0
 
 def configure():
@@ -23,9 +21,6 @@ def addr_inode_table():
     return pickle.dumps(filesystem.addr_inode_table())
 
 def get_data_block(block_number):
-    global RAID_REQ_COUNT_GET
-    RAID_REQ_COUNT_GET += 1
-    print("GET:" + str(RAID_REQ_COUNT_GET))
     block_number = pickle.loads(block_number)
     try:
         res = filesystem.get_data_block(block_number)
@@ -43,9 +38,6 @@ def free_data_block(block_number):
     return pickle.dumps(filesystem.free_data_block(block_number))
 
 def update_data_block(block_number, block_data):	
-    global RAID_REQ_COUNT_SET
-    RAID_REQ_COUNT_SET += 1
-    print("SET:" + str(RAID_REQ_COUNT_SET))
     block_number, block_data = pickle.loads(block_number), pickle.loads(block_data)
     block_data, chksum = _data_and_chksum(block_data)
     return pickle.dumps(filesystem.update_data_block(block_number, block_data+chksum))
@@ -75,7 +67,9 @@ def corruptData(mode):
             b = BASE_DATA_BLOCK if BASE_DATA_BLOCK >= max_b-1 \
                 else random.randint(BASE_DATA_BLOCK, max_b-1)
             filesystem.corrupt_data_block(b, mode)
-        except: traceback.print_exc()
+        except:
+            #traceback.print_exc()
+            return pickle.dumps(retVal)
         retVal = 'Data corrupted in server on port ' + str(portNumber) + ' block ' + str(b)
     print(retVal)
     return pickle.dumps(retVal)
