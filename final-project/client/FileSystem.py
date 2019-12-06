@@ -24,7 +24,7 @@ class FileSystemOperations():
       
 
     #READ
-    def read(self, path, offset=0, size=-1, delay_sec=5):
+    def read(self, path, offset=0, size=-1, delay_sec=0):
         read_buffer = interface.read(path, offset, size, delay_sec)
         if read_buffer != -1: print(path + " : " + read_buffer)
         return read_buffer

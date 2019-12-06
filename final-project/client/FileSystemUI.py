@@ -57,7 +57,7 @@ def file_system_repl():
             path = command[1]
             offset = 0
             size = -1
-            delay_sec = 5
+            delay_sec = 0
             if (len(command) >= 3):
                 offset = int(command[2])
             if (len(command) >= 4):
